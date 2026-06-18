@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosalie Financial Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ═══════════════════ THEME VARIABLES ═══════════════════ */
+:root {
+  --bg:#f7f8fa;--surface:#fff;--surface2:#f0f2f5;--surface3:#e8eaed;
+  --border:#e2e5e9;--border2:#d0d4da;
+  --green:#16a34a;--green-l:#dcfce7;--green-m:#86efac;
+  --blue:#1d4ed8;--blue-l:#dbeafe;
+  --amber:#d97706;--amber-l:#fef3c7;
+  --red:#dc2626;--red-l:#fee2e2;
+  --purple:#7c3aed;--purple-l:#ede9fe;
+  --cyan:#0891b2;--cyan-l:#cffafe;
+  --text:#0f172a;--text2:#334155;--text3:#64748b;--text4:#94a3b8;
+  --font-s:'IBM Plex Sans',sans-serif;--font-m:'IBM Plex Mono',monospace;
+  --r:10px;--rlg:16px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shm:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+}
+[data-theme="dark"]{
+  --bg:#060b14;--surface:#0d1625;--surface2:#111e33;--surface3:#1a2a45;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --green:#4ade80;--green-l:rgba(74,222,128,.1);--green-m:rgba(74,222,128,.4);
+  --blue:#60a5fa;--blue-l:rgba(96,165,250,.1);
+  --amber:#fbbf24;--amber-l:rgba(251,191,36,.1);
+  --red:#f87171;--red-l:rgba(248,113,113,.1);
+  --purple:#c084fc;--purple-l:rgba(192,132,252,.1);
+  --cyan:#22d3ee;--cyan-l:rgba(34,211,238,.1);
+  --text:#f1f5f9;--text2:#cbd5e1;--text3:#64748b;--text4:#334155;
+  --sh:0 1px 3px rgba(0,0,0,.4);--shm:0 4px 20px rgba(0,0,0,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font-s);min-height:100vh;transition:background .3s,color .3s}
+
+/* ═══════════════════ HEADER ═══════════════════ */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;position:sticky;top:0;z-index:200;box-shadow:var(--sh);transition:background .3s,border-color .3s}
+.hdr-in{max-width:1500px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px;gap:1rem}
+.logo{font-family:var(--font-m);font-size:.95rem;font-weight:600;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;color:var(--text)}
+.logo-r{color:var(--green);font-size:1.1rem}
+.logo-sub{font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.theme-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.theme-btn:hover{border-color:var(--green)}
+.nav{display:flex;gap:2px;background:var(--surface2);padding:3px;border-radius:var(--r);flex-wrap:wrap}
+.nb{padding:5px 14px;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:var(--font-s);transition:all .15s;white-space:nowrap}
+.nb.on{background:var(--surface);color:var(--text);box-shadow:var(--sh)}
+
+/* ═══════════════════ LAYOUT ═══════════════════ */
+.wrap{max-width:1500px;margin:0 auto;padding:1.25rem 1.5rem}
+.panel{display:none}.panel.on{display:block}
+.g2{display:grid;grid-template-columns:340px 1fr;gap:1.25rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.gauto{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.25rem}
+.rc{display:flex;flex-direction:column;gap:1.25rem}
+@media(max-width:960px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.g3,.g4{grid-template-columns:1fr}}
+
+/* ═══════════════════ MOBILE RESPONSIVE ═══════════════════ */
+@media(max-width:768px){
+  /* Header: stack logo and nav */
+  .hdr-in{height:auto;padding:.6rem 0;flex-direction:column;align-items:stretch;gap:.5rem}
+  .logo{font-size:.85rem;justify-content:center}
+  .logo-sub{font-size:8px}
+  .hdr-right{justify-content:center}
+  .nav{justify-content:center;flex-wrap:wrap;gap:2px}
+  .nb{padding:5px 10px;font-size:10px}
+  .hdr{padding:0 1rem}
+
+  /* Main container */
+  .wrap{padding:1rem .75rem}
+
+  /* Cards */
+  .card{border-radius:12px}
+  .ch{padding:.7rem .9rem}
+  .cb{padding:.9rem}
+  .ct{font-size:9px}
+
+  /* Stat cards: 2 columns on mobile */
+  .gauto{grid-template-columns:repeat(2,1fr)!important;gap:8px}
+  .stat{padding:.7rem .8rem}
+  .sv{font-size:1rem}
+  .sl{font-size:8px}
+  .ss{font-size:8px}
+
+  /* Form fields */
+  .fl{margin-bottom:.7rem}
+  .fll{font-size:9px}
+  input[type=text],input[type=number],select{font-size:14px;padding:10px 11px}
+  input.pp{padding-left:22px}
+  .ip{font-size:11px}
+
+  /* Sliders: bigger touch target */
+  input[type=range]{height:6px;margin-top:8px}
+  input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
+  .rr{gap:6px}
+  .rv{font-size:11px;min-width:38px}
+
+  /* Toggle groups */
+  .tg{gap:2px;padding:2px}
+  .tb{padding:7px 3px;font-size:9px}
+
+  /* Quick load buttons */
+  .quick{gap:4px}
+  .qb{padding:4px 7px;font-size:9px}
+
+  /* Ticker row */
+  .ticker-row{flex-direction:column;gap:6px}
+  .ticker-inp{width:100%}
+  .ticker-inp input{font-size:14px}
+  .ti-grid{grid-template-columns:repeat(2,1fr);gap:6px;padding:.7rem}
+
+  /* Charts */
+  .ctabs{gap:3px}
+  .ctab{padding:4px 9px;font-size:9px}
+
+  /* Tables: ensure scroll works smoothly */
+  .tscroll{-webkit-overflow-scrolling:touch}
+  table{font-size:10px}
+  th{font-size:8px;padding:5px 6px}
+  td{padding:5px 6px}
+
+  /* Scenario pills */
+  .qb[onclick*="setDr"]{padding:4px 6px;font-size:8px}
+
+  /* Event dropdown */
+  #iEvent{font-size:10px;padding:6px}
+
+  /* Compare mode: STACK vertically on mobile */
+  #hCompare>div:first-child{grid-template-columns:1fr!important}
+
+  /* Pulse sub-tabs */
+  .pulse-tabs{gap:2px;padding:2px}
+  .pt{padding:5px 10px;font-size:10px}
+
+  /* TradingView widgets: reduce height on mobile */
+  .tradingview-widget-container{height:400px!important}
+
+  /* Alert boxes */
+  .abox{font-size:10px;padding:.6rem .8rem}
+
+  /* Compare stats on mobile: 2 cols */
+  #cStats{grid-template-columns:repeat(2,1fr)!important}
+
+  /* Lookup links */
+  a[onclick*="openTTM"],a[onclick*="openPrice"]{font-size:8px;margin-left:4px}
+
+  /* Debt freedom summary rows */
+  #mSum div[style*="flex"]{font-size:11px}
+
+  /* Progress bars in amort table */
+  .progress{height:4px}
+}
+
+/* Extra small phones (iPhone SE, etc) */
+@media(max-width:380px){
+  .nb{padding:4px 8px;font-size:9px}
+  .nav{gap:1px}
+  .gauto{grid-template-columns:1fr 1fr;gap:6px}
+  .stat{padding:.6rem .7rem}
+  .sv{font-size:.9rem}
+  .cb{padding:.7rem}
+  .tradingview-widget-container{height:340px!important}
+  input[type=text],input[type=number],select{font-size:13px}
+  #hCompare>div:first-child{gap:.75rem!important}
+}
+
+/* ═══════════════════ CARDS ═══════════════════ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);box-shadow:var(--sh);overflow:hidden;transition:background .3s,border-color .3s}
+.ch{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ch-left{display:flex;align-items:center;gap:8px}
+.cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ct{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text3)}
+.cb{padding:1.1rem 1.2rem}
+
+/* ═══════════════════ FORM ═══════════════════ */
+.fl{margin-bottom:.9rem}.fl:last-child{margin-bottom:0}
+.fll{font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
+.flv{color:var(--green);font-weight:600;letter-spacing:0;text-transform:none;font-family:var(--font-m);font-size:11px}
+.iw{position:relative}
+.ip,.is{position:absolute;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);font-family:var(--font-m);pointer-events:none}
+.ip{left:10px}.is{right:10px}
+input[type=text],input[type=number],select{width:100%;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);font-family:var(--font-m);font-size:12px;padding:8px 11px;border-radius:var(--r);outline:none;transition:border-color .15s,box-shadow .15s}
+input.pp{padding-left:24px}input.ps{padding-right:34px}
+input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.1)}
+input[type=range]{width:100%;height:3px;border-radius:3px;appearance:none;background:var(--surface3);cursor:pointer;border:none;padding:0;outline:none;margin-top:5px}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.15);cursor:pointer}
+.rr{display:flex;align-items:center;gap:8px}
+.rv{font-family:var(--font-m);font-size:12px;font-weight:500;color:var(--green);min-width:44px;text-align:right;white-space:nowrap}
+.tg{display:flex;gap:3px;background:var(--surface2);padding:3px;border-radius:var(--r)}
+.tb{flex:1;padding:6px 4px;font-family:var(--font-s);font-size:10px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text3);border-radius:7px;transition:all .15s;text-align:center}
+.tb.on{background:var(--surface);color:var(--green);box-shadow:var(--sh)}
+
+/* ═══════════════════ STATS ═══════════════════ */
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:.9rem 1rem;position:relative;overflow:hidden;transition:background .3s}
+.stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.sg::before{background:var(--green)}.sb::before{background:var(--blue)}.sa::before{background:var(--amber)}.sr::before{background:var(--red)}.sp::before{background:var(--purple)}.sc::before{background:var(--cyan)}
+.sl{font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.sv{font-family:var(--font-m);font-size:1.2rem;font-weight:600;line-height:1}
+.sg .sv{color:var(--green)}.sb .sv{color:var(--blue)}.sa .sv{color:var(--amber)}.sr .sv{color:var(--red)}.sp .sv{color:var(--purple)}.sc .sv{color:var(--cyan)}
+.ss{font-size:9px;color:var(--text4);margin-top:3px}
+
+/* ═══════════════════ BUTTONS ═══════════════════ */
+.btn{padding:8px 18px;border-radius:var(--r);font-family:var(--font-s);font-size:12px;font-weight:500;cursor:pointer;transition:opacity .15s;border:none;white-space:nowrap}
+.btn-g{background:var(--green);color:#fff}.btn-g:hover{opacity:.85}
+.btn-b{background:var(--blue);color:#fff}.btn-b:hover{opacity:.85}
+.btn-o{background:var(--surface2);color:var(--text2);border:1px solid var(--border2)}.btn-o:hover{border-color:var(--green);color:var(--green)}
+.btn:disabled{opacity:.45;cursor:wait}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ═══════════════════ TICKER SEARCH ═══════════════════ */
+.ticker-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:1rem}
+.ticker-inp{flex:1}
+.ticker-inp input{font-size:16px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:9px 13px}
+.quick{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem}
+.qb{padding:3px 9px;border-radius:6px;font-size:10px;font-family:var(--font-m);font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);transition:all .15s}
+.qb:hover{border-color:var(--green);color:var(--green);background:var(--green-l)}
+.ti-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;padding:.9rem;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:1rem}
+.ti-i .til{font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.ti-i .tiv{font-family:var(--font-m);font-size:12px;font-weight:500}
+.sbar{padding:7px 11px;border-radius:var(--r);font-size:11px;margin-bottom:.75rem;display:none}
+.sbar.load{display:block;background:var(--blue-l);color:var(--blue)}
+.sbar.ok{display:block;background:var(--green-l);color:var(--green)}
+.sbar.err{display:block;background:var(--red-l);color:var(--red)}
+.sbar.warn{display:block;background:var(--amber-l);color:var(--amber)}
+
+/* ═══════════════════ TABLE ═══════════════════ */
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{font-size:9px;font-weight:500;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;padding:7px 9px;text-align:left;border-bottom:1.5px solid var(--border);background:var(--surface2);white-space:nowrap}
+td{padding:7px 9px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(0,0,0,.02)}
+[data-theme="dark"] tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ═══════════════════ BADGE ═══════════════════ */
+.bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:100px;font-size:9px;font-weight:600;letter-spacing:.03em}
+.bdg-g{background:var(--green-l);color:var(--green)}
+.bdg-r{background:var(--red-l);color:var(--red)}
+.bdg-b{background:var(--blue-l);color:var(--blue)}
+.bdg-a{background:var(--amber-l);color:var(--amber)}
+.bdg-p{background:var(--purple-l);color:var(--purple)}
+
+/* ═══════════════════ ALERT ═══════════════════ */
+.abox{border-radius:var(--r);padding:.7rem 1rem;font-size:11px;line-height:1.65;margin-top:.7rem}
+.abox-g{background:var(--green-l);border-left:3px solid var(--green);color:var(--green)}
+.abox-a{background:var(--amber-l);border-left:3px solid var(--amber);color:var(--amber)}
+.abox-b{background:var(--blue-l);border-left:3px solid var(--blue);color:var(--blue)}
+.abox-r{background:var(--red-l);border-left:3px solid var(--red);color:var(--red)}
+
+/* ═══════════════════ CHART TABS ═══════════════════ */
+.ctabs{display:flex;gap:4px;margin-bottom:.9rem;flex-wrap:wrap}
+.ctab{padding:4px 11px;border-radius:6px;font-size:10px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text3);font-family:var(--font-s);transition:all .15s}
+.ctab.on{background:var(--green-l);color:var(--green);border-color:var(--green-m)}
+.progress{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;margin-top:3px}
+.pf{height:100%;border-radius:3px;transition:width .3s}
+hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
+
+/* ═══════════════════ MARKET PULSE ═══════════════════ */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:1.25rem}
+.sector-card{border-radius:var(--r);padding:.75rem .9rem;border:1px solid var(--border);text-align:center;cursor:pointer;transition:all .2s;background:var(--surface)}
+.sector-card:hover{transform:translateY(-2px);box-shadow:var(--shm)}
+.sc-name{font-size:9px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.sc-ticker{font-family:var(--font-m);font-size:10px;color:var(--text4);margin-bottom:4px}
+.sc-pct{font-family:var(--font-m);font-size:1rem;font-weight:600;line-height:1}
+.sc-price{font-size:9px;color:var(--text3);margin-top:3px;font-family:var(--font-m)}
+.up{color:var(--green)}.dn{color:var(--red)}.neu{color:var(--text3)}
+
+.mover-table table td:first-child{font-family:var(--font-m);font-weight:600}
+.spark{display:inline-block;width:50px;height:18px;vertical-align:middle}
+
+.news-item{padding:.75rem 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.news-item:last-child{border-bottom:none}
+.news-src{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:var(--surface2);color:var(--text3);white-space:nowrap;margin-top:2px}
+.news-title{font-size:12px;color:var(--text);line-height:1.5;font-weight:400}
+.news-title a{color:inherit;text-decoration:none}
+.news-title a:hover{color:var(--green)}
+.news-meta{font-size:10px;color:var(--text4);margin-top:3px}
+.news-tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;margin-right:4px;font-weight:500}
+
+.crypto-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.crypto-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.8rem 1rem;text-align:center;transition:background .3s}
+.cc-sym{font-family:var(--font-m);font-size:11px;font-weight:600;color:var(--text)}
+.cc-name{font-size:9px;color:var(--text3);margin:2px 0 6px}
+.cc-price{font-family:var(--font-m);font-size:1rem;font-weight:600}
+.cc-chg{font-size:10px;font-family:var(--font-m);font-weight:500;margin-top:2px}
+.cc-mcap{font-size:9px;color:var(--text4);margin-top:3px}
+
+.wl-row{display:flex;gap:6px;align-items:center;margin-bottom:.9rem;flex-wrap:wrap}
+.wl-inp{flex:1;min-width:120px}
+.refresh-bar{display:flex;justify-content:space-between;align-items:center;padding:.6rem .9rem;background:var(--surface2);border-radius:var(--r);margin-bottom:.9rem;font-size:11px;color:var(--text3)}
+.last-upd{font-family:var(--font-m);font-size:10px;color:var(--text4)}
+
+.pulse-tabs{display:flex;gap:3px;background:var(--surface2);padding:3px;border-radius:var(--r);margin-bottom:1.25rem;flex-wrap:wrap}
+.pt{padding:6px 16px;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:var(--font-s);transition:all .15s;white-space:nowrap}
+.pt.on{background:var(--surface);color:var(--text);box-shadow:var(--sh)}
+
+.loading-spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="logo">
+      <div>
+        <span class="logo-r">R</span>osalie Financial Desk
+        <span class="logo-sub">Personal Wealth Command Center</span>
+      </div>
+    </div>
+    <nav class="nav" id="mainNav">
+      <button class="nb on" onclick="switchTab('income',this)">📈 Income ETF</button>
+      <button class="nb" onclick="switchTab('crypto',this)">⚡ Market Pulse</button>
+      <button class="nb" onclick="switchTab('mortgage',this)">🏠 Debt Freedom</button>
+      <button class="nb" onclick="switchTab('hysa',this)">💰 Wealth Compounder</button>
+    </nav>
+    <div class="hdr-right">
+      <button class="theme-btn" onclick="toggleTheme()" title="Toggle dark/light mode" id="themeBtn">☀️</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ═══════════════════════════════════════════════
+     INCOME ETF CALCULATOR
+═══════════════════════════════════════════════ -->
+<div class="panel on" id="panel-income">
+<div class="g2">
+<div class="rc">
+
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">Ticker Lookup</span></div></div>
+    <div class="cb">
+      <div class="ticker-row">
+        <div class="ticker-inp"><input type="text" id="tickSym" placeholder="e.g. MAGY" maxlength="10" value="MAGY" onkeydown="if(event.key==='Enter')fetchTicker()"></div>
+        <button class="btn btn-o" id="fetchBtn" onclick="fetchTicker()" style="font-size:11px">Load Ticker</button>
+      </div>
+      <div class="quick">
+        <span style="font-size:9px;color:var(--text3);align-self:center;white-space:nowrap">Quick load:</span>
+        <button class="qb" onclick="ql('MAGY')">MAGY</button>
+        <button class="qb" onclick="ql('JEPI')">JEPI</button>
+        <button class="qb" onclick="ql('JEPQ')">JEPQ</button>
+        <button class="qb" onclick="ql('QQQI')">QQQI</button>
+        <button class="qb" onclick="ql('XDTE')">XDTE</button>
+        <button class="qb" onclick="ql('SPYI')">SPYI</button>
+        <button class="qb" onclick="ql('QYLD')">QYLD</button>
+        <button class="qb" onclick="ql('SCHD')">SCHD</button>
+        <button class="qb" onclick="ql('YMAG')">YMAG</button>
+        <button class="qb" onclick="ql('NVDY')">NVDY</button>
+      </div>
+      <div class="sbar" id="sbar">...</div>
+      <div class="ti-grid" id="tiGrid">
+        <div class="ti-i"><div class="til">Name</div><div class="tiv" id="tiName">—</div></div>
+        <div class="ti-i"><div class="til">Price</div><div class="tiv" id="tiPrice">—</div></div>
+        <div class="ti-i"><div class="til">Change</div><div class="tiv" id="tiChg">—</div></div>
+        <div class="ti-i"><div class="til">52W High</div><div class="tiv" id="ti52H">—</div></div>
+        <div class="ti-i"><div class="til">52W Low</div><div class="tiv" id="ti52L">—</div></div>
+        <div class="ti-i"><div class="til">Market Cap</div><div class="tiv" id="tiCap">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">Settings</span></div></div>
+    <div class="cb">
+      <div class="fl"><div class="fll">Capital invested</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="iCap" value="10000" min="100" step="500" oninput="syncFromCap();ci()"></div></div>
+      <div class="fl"><div class="fll">Share price <span class="flv" id="iPrL">$43.00</span> <a href="#" onclick="openPrice(event)" style="font-size:9px;color:var(--cyan);text-decoration:none;letter-spacing:0;text-transform:none;margin-left:6px;opacity:.8" title="Look up latest price">💲 Lookup Price</a></div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="iPr" value="43.00" step="0.01" oninput="document.getElementById('iPrL').textContent='$'+parseFloat(this.value||0).toFixed(2);syncFromCap();ci()"></div></div>
+      <div class="fl"><div class="fll">My shares <span class="flv" id="iShL">232.6</span></div><div class="iw"><input type="number" id="iSh" value="232.6" min="0" step="0.1" style="font-weight:600;color:var(--amber)" oninput="syncFromShares();ci()"></div></div>
+      <div class="fl"><div class="fll">TTM Yield % <span class="flv" id="iYL">37%</span> <a href="#" id="ttmLink" onclick="openTTM(event)" style="font-size:9px;color:var(--cyan);text-decoration:none;letter-spacing:0;text-transform:none;margin-left:6px;opacity:.8" title="Look up latest TTM yield">📊 Lookup TTM</a></div><div class="rr"><input type="range" id="iY" min="1" max="80" value="37" oninput="document.getElementById('iYL').textContent=this.value+'%';document.getElementById('iYD').textContent=this.value+'%';ur(this,'--green');ci()"><span class="rv" id="iYD">37%</span></div></div>
+      <div class="fl"><div class="fll">Frequency</div><div class="tg" id="frTg"><div class="tb on" onclick="sf(52,this)">Weekly</div><div class="tb" onclick="sf(12,this)">Monthly</div><div class="tb" onclick="sf(4,this)">Quarterly</div></div></div>
+      <div class="fl"><div class="fll">Years <span class="flv" id="iYrL">10</span></div><div class="rr"><input type="range" id="iYr" min="1" max="20" value="10" oninput="document.getElementById('iYrL').textContent=this.value;document.getElementById('iYrD').textContent=this.value;ur(this,'--green');ci()"><span class="rv" id="iYrD">10</span></div></div>
+      <div class="fl"><div class="fll">Price drift/yr <span class="flv" id="iDrL">0%</span></div><div class="rr"><input type="range" id="iDr" min="-50" max="50" value="0" oninput="document.getElementById('iDrL').textContent=this.value+'%';document.getElementById('iDrD').textContent=this.value+'%';ur(this,'--green');ci()"><span class="rv" id="iDrD">0%</span></div></div>
+      <div class="fl" style="margin-bottom:.6rem">
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="qb" style="font-size:9px;padding:3px 7px" onclick="setDr(-10,this)">📉 -10%</button>
+          <button class="qb" style="font-size:9px;padding:3px 7px" onclick="setDr(-5,this)">↓ -5%</button>
+          <button class="qb" style="font-size:9px;padding:3px 7px;border-color:var(--green);color:var(--green)" onclick="setDr(0,this)">➡ Flat</button>
+          <button class="qb" style="font-size:9px;padding:3px 7px" onclick="setDr(5,this)">↑ +5%</button>
+          <button class="qb" style="font-size:9px;padding:3px 7px" onclick="setDr(10,this)">📈 +10%</button>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
+          <select id="iEvent" onchange="applyEvent()" style="font-size:9px;padding:3px 7px;width:auto;flex:1">
+            <option value="">⚡ Event effect on price...</option>
+            <option value="-15,50">☢ Iran war spike (VIX~50, -15%)</option>
+            <option value="-20,55">🪖 Cuba crisis (VIX~55, -20%)</option>
+            <option value="-30,80">💥 COVID-level crash (VIX~80, -30%)</option>
+            <option value="-12,37">📉 Tariff shock (-12%)</option>
+            <option value="10,18">🚀 AI supercycle (+10%)</option>
+            <option value="5,15">📈 Rate cuts rally (+5%)</option>
+            <option value="15,22">🏗 Data center boom (+15%)</option>
+            <option value="0,18">↺ Reset to flat</option>
+          </select>
+        </div>
+      </div>
+      <div class="fl"><div class="fll">Monthly add-on</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="iAdd" value="0" step="50" oninput="ci()"></div></div>
+      <div class="fl"><div class="fll">Strategy</div><div class="tg" id="stTg"><div class="tb on" onclick="ss(1,this)">DRIP 100%</div><div class="tb" onclick="ss(.5,this)">Hybrid 50%</div><div class="tb" onclick="ss(0,this)">Take Cash</div></div></div>
+      <div class="fl"><div class="fll">Tax rate</div><select id="iTx" onchange="ci()"><option value="0">0% — Roth IRA</option><option value="0.22">22% taxable</option><option value="0.24" selected>24% taxable</option><option value="0.32">32% taxable</option></select></div>
+    </div>
+  </div>
+
+</div>
+<div class="rc">
+  <div class="gauto" id="iStats"></div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">Projection</span></div></div>
+    <div class="cb">
+      <div class="ctabs">
+        <button class="ctab on" onclick="sic('total',this)">Total Return</button>
+        <button class="ctab" onclick="sic('income',this)">Monthly Income</button>
+        <button class="ctab" onclick="sic('shares',this)">Shares</button>
+        <button class="ctab" onclick="sic('compare',this)">Bear/Base/Bull</button>
+      </div>
+      <div style="position:relative;height:230px"><canvas id="iChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">Year-by-Year Breakdown</span></div></div>
+    <div class="cb tscroll">
+      <table><thead><tr><th>Yr</th><th>Price</th><th>Shares</th><th>Weekly</th><th>Per Period</th><th>Monthly</th><th>Annual</th><th>Position</th><th>Cash Out</th><th>Net P&L</th><th>Yld/Cost</th></tr></thead><tbody id="iTb"></tbody></table>
+      <div id="iAl"></div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     DEBT FREEDOM TRACKER
+═══════════════════════════════════════════════ -->
+<div class="panel" id="panel-mortgage">
+<div class="g2">
+<div class="rc">
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">🏠 Debt Freedom Tracker</span></div></div>
+    <div class="cb">
+      <div class="fl"><div class="fll">Home / Asset value</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="mHV" value="500000" step="5000" oninput="cm()"></div></div>
+      <div class="fl"><div class="fll">Remaining loan balance</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="mBal" value="450000" step="1000" oninput="cm()"></div></div>
+      <div class="fl"><div class="fll">Interest rate <span class="flv" id="mRL">5.00%</span></div><div class="rr"><input type="range" id="mR" min="1" max="15" step="0.05" value="5.00" oninput="document.getElementById('mRL').textContent=parseFloat(this.value).toFixed(2)+'%';document.getElementById('mRD').textContent=parseFloat(this.value).toFixed(2)+'%';ur(this,'--blue');cm()"><span class="rv" id="mRD">5.00%</span></div></div>
+      <div class="fl"><div class="fll">Years remaining <span class="flv" id="mTL">30</span></div><div class="rr"><input type="range" id="mT" min="1" max="30" value="30" oninput="document.getElementById('mTL').textContent=this.value;document.getElementById('mTD').textContent=this.value;ur(this,'--blue');cm()"><span class="rv" id="mTD">30</span></div></div>
+      <hr>
+      <div class="fl"><div class="fll">Extra monthly payment</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="mEx" value="0" step="50" oninput="cm()"></div></div>
+      <div class="fl"><div class="fll">One-time lump sum payment</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="mLp" value="0" step="1000" oninput="cm()"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Freedom Summary</span></div></div>
+    <div class="cb" id="mSum"></div>
+  </div>
+</div>
+<div class="rc">
+  <div class="gauto" id="mStats"></div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">Balance Paydown Chart</span></div></div>
+    <div class="cb"><div style="position:relative;height:230px"><canvas id="mChart"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Amortization Schedule</span></div></div>
+    <div class="cb tscroll">
+      <table><thead><tr><th>Year</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th><th>Equity</th><th>Equity %</th></tr></thead><tbody id="mTb"></tbody></table>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     WEALTH COMPOUNDER
+═══════════════════════════════════════════════ -->
+<div class="panel" id="panel-hysa">
+
+<!-- COMPARE TOGGLE -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
+  <div style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase">Wealth Compounder — compound any investment over time</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:11px;color:var(--text3)">Compare mode</span>
+    <div class="tg" style="width:140px">
+      <div class="tb on" onclick="setCompare(false,this)">Single</div>
+      <div class="tb" onclick="setCompare(true,this)">Side by Side</div>
+    </div>
+  </div>
+</div>
+
+<!-- SINGLE MODE -->
+<div id="hSingle">
+<div class="g2">
+<div class="rc">
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--purple)"></div><span class="ct">💰 Investment Settings</span></div></div>
+    <div class="cb">
+      <div class="fl"><div class="fll">Investment type</div>
+        <select id="hType" onchange="ch()">
+          <option value="hysa">HYSA — High Yield Savings</option>
+          <option value="401k">401(k) Pre-tax</option>
+          <option value="roth">Roth IRA Tax-free</option>
+          <option value="brokerage">Taxable Brokerage</option>
+          <option value="cd">CD Certificate</option>
+          <option value="stock">Stock / ETF Growth</option>
+          <option value="crypto">Crypto Asset</option>
+          <option value="realestate">Real Estate (equity)</option>
+          <option value="other">Other Investment</option>
+        </select>
+      </div>
+      <div class="fl" id="hNameRow" style="display:none"><div class="fll">Investment name</div><input type="text" id="hName" placeholder="e.g. MAGY, Bitcoin, Rental property" oninput="ch()"></div>
+      <div class="fl"><div class="fll">Starting balance / capital</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="hSt" value="234000" step="1000" oninput="ch()"></div></div>
+      <div class="fl"><div class="fll">Annual return rate (%) <span class="flv" id="hRL">3.75%</span></div><div class="rr"><input type="range" id="hR" min="0.1" max="50" step="0.05" value="3.75" oninput="document.getElementById('hRL').textContent=parseFloat(this.value).toFixed(2)+'%';document.getElementById('hRD').textContent=parseFloat(this.value).toFixed(2)+'%';ur(this,'--purple');ch()"><span class="rv" id="hRD">3.75%</span></div></div>
+      <div class="fl"><div class="fll">Monthly contribution</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="hAdd" value="0" step="100" oninput="ch()"></div></div>
+      <div class="fl"><div class="fll">Years <span class="flv" id="hYrL">10</span></div><div class="rr"><input type="range" id="hYr" min="1" max="30" value="10" oninput="document.getElementById('hYrL').textContent=this.value;document.getElementById('hYrD').textContent=this.value;ur(this,'--purple');ch()"><span class="rv" id="hYrD">10</span></div></div>
+      <div class="fl"><div class="fll">Compounding</div><div class="tg"><div class="tb on" onclick="shc(365,this)">Daily</div><div class="tb" onclick="shc(12,this)">Monthly</div><div class="tb" onclick="shc(4,this)">Quarterly</div><div class="tb" onclick="shc(1,this)">Annual</div></div></div>
+      <hr>
+      <div class="fl"><div class="fll">Inflation rate <span class="flv" id="hInL">3.2%</span></div><div class="rr"><input type="range" id="hIn" min="0" max="12" step="0.1" value="3.2" oninput="document.getElementById('hInL').textContent=parseFloat(this.value).toFixed(1)+'%';document.getElementById('hInD').textContent=parseFloat(this.value).toFixed(1)+'%';ur(this,'--red');ch()"><span class="rv" id="hInD">3.2%</span></div></div>
+      <div class="fl"><div class="fll">Tax rate on gains</div><select id="hTx" onchange="ch()"><option value="0">0% — Tax free (Roth/crypto hold)</option><option value="0.22">22%</option><option value="0.24" selected>24%</option><option value="0.32">32%</option></select></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--purple)"></div><span class="ct">Summary</span></div></div>
+    <div class="cb" id="hSum"></div>
+  </div>
+</div>
+<div class="rc">
+  <div class="gauto" id="hStats"></div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--purple)"></div><span class="ct">Growth vs Inflation</span></div></div>
+    <div class="cb"><div style="position:relative;height:230px"><canvas id="hChart"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Year-by-Year Table</span></div></div>
+    <div class="cb tscroll">
+      <table><thead><tr><th>Year</th><th>Balance</th><th>Annual Return</th><th>Tax Paid</th><th>Net Return</th><th>Contributed</th><th>Inflation Value</th><th>Real Gain</th></tr></thead><tbody id="hTb"></tbody></table>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- COMPARE MODE -->
+<div id="hCompare" style="display:none">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+    <!-- Investment A -->
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">📊 Investment A</span></div></div>
+      <div class="cb" id="cFormA"></div>
+    </div>
+    <!-- Investment B -->
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--cyan)"></div><span class="ct">📈 Investment B</span></div></div>
+      <div class="cb" id="cFormB"></div>
+    </div>
+  </div>
+
+  <!-- COMPARE YEARS -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Comparison Settings</span></div></div>
+    <div class="cb" style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-end">
+      <div class="fl" style="min-width:200px;margin-bottom:0"><div class="fll">Years to compare <span class="flv" id="cYrL">10</span></div><div class="rr"><input type="range" id="cYr" min="1" max="30" value="10" oninput="document.getElementById('cYrL').textContent=this.value;ur(this,'--amber');cmp()"><span class="rv" id="cYrD">10</span></div></div>
+      <div class="fl" style="min-width:200px;margin-bottom:0"><div class="fll">Inflation rate <span class="flv" id="cInfL">3.2%</span></div><div class="rr"><input type="range" id="cInf" min="0" max="12" step="0.1" value="3.2" oninput="document.getElementById('cInfL').textContent=parseFloat(this.value).toFixed(1)+'%';ur(this,'--red');cmp()"><span class="rv" id="cInfD">3.2%</span></div></div>
+    </div>
+  </div>
+
+  <!-- COMPARE RESULTS -->
+  <div class="gauto" id="cStats"></div>
+  <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Growth Comparison Chart</span></div></div>
+      <div class="cb"><div style="position:relative;height:260px"><canvas id="cChart"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--cyan)"></div><span class="ct">Winner Analysis</span></div></div>
+      <div class="cb" id="cWinner"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">Year-by-Year Comparison</span></div></div>
+    <div class="cb tscroll">
+      <table><thead><tr><th>Year</th><th id="cThA">A Balance</th><th>A Monthly</th><th>A Net P&L</th><th id="cThB">B Balance</th><th>B Monthly</th><th>B Net P&L</th><th>Difference</th><th>Leader</th></tr></thead><tbody id="cTb"></tbody></table>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MARKET PULSE — TradingView Powered
+═══════════════════════════════════════════════ -->
+<div class="panel" id="panel-crypto">
+
+  <div class="pulse-tabs" style="display:flex;gap:3px;background:var(--surface2);padding:3px;border-radius:var(--r);margin-bottom:1.25rem;flex-wrap:wrap">
+    <button class="pt on" onclick="spt('overview',this)">📊 Market Overview</button>
+    <button class="pt" onclick="spt('sheatmap',this)">🗺 Stock Heatmap</button>
+    <button class="pt" onclick="spt('cheatmap',this)">₿ Crypto Heatmap</button>
+    <button class="pt" onclick="spt('movers',this)">🔥 Top Movers</button>
+    <button class="pt" onclick="spt('crypto',this)">📈 Crypto Detail</button>
+  </div>
+
+  <!-- MARKET OVERVIEW -->
+  <div id="pp-overview">
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--cyan)"></div><span class="ct">📊 Market Overview — Live Indices, Mag 7, Crypto</span></div></div>
+      <div class="cb" style="padding:0">
+        <div class="tradingview-widget-container" style="height:500px">
+          <iframe id="tvOverview" style="width:100%;height:100%;border:none" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="abox abox-b">
+      <strong>How to use:</strong> This shows S&P 500, Nasdaq, Dow, Bitcoin, Gold, Oil, and major forex pairs — all streaming live. Green = up today, red = down. Check this before market open to see the overall direction. If indices are green and crypto is green — risk-on environment, good for your MAGY and growth positions.
+    </div>
+  </div>
+
+  <!-- STOCK HEATMAP -->
+  <div id="pp-sheatmap" style="display:none">
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">🗺 S&P 500 Stock Heatmap — Live Sectors</span></div></div>
+      <div class="cb" style="padding:0">
+        <div class="tradingview-widget-container" style="height:550px">
+          <iframe id="tvStockHeat" style="width:100%;height:100%;border:none" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="abox abox-b">
+      <strong>How to read this:</strong> Bigger boxes = larger market cap companies. Bright green = surging today, bright red = selling off. Find NVDA, AAPL, MSFT, META, AMZN, GOOGL, TSLA — those are your Mag 7 inside MAGY. If most of them are green, your MAGY position is likely up and weekly premiums will be healthy. Tech sector (top left) is the most important sector for your portfolio.
+    </div>
+  </div>
+
+  <!-- CRYPTO HEATMAP -->
+  <div id="pp-cheatmap" style="display:none">
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">₿ Crypto Heatmap — Top Coins by Market Cap</span></div></div>
+      <div class="cb" style="padding:0">
+        <div class="tradingview-widget-container" style="height:550px">
+          <iframe id="tvCryptoHeat" style="width:100%;height:100%;border:none" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="abox abox-b">
+      <strong>Your positions:</strong> Find BTC and XRP on the heatmap — those are your crypto holdings. Green = money flowing in, red = selling pressure. The bigger the box the larger the market cap. Bitcoin dominates the map — when BTC moves, everything moves with it.
+    </div>
+  </div>
+
+  <!-- TOP MOVERS -->
+  <div id="pp-movers" style="display:none">
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--red)"></div><span class="ct">🔥 Top Gainers & Losers — Live</span></div></div>
+      <div class="cb" style="padding:0">
+        <div class="tradingview-widget-container" style="height:500px">
+          <iframe id="tvMovers" style="width:100%;height:100%;border:none" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="abox abox-b">
+      <strong>How to use for your trading:</strong> Check top gainers the night before to spot momentum setups for your bull flag scanner. Top losers can signal oversold bounce opportunities or sectors to avoid. If your holdings (MAGY, CCL, OXY, RCL) appear in the losers list — check why before reacting. Often it's a buying opportunity, not a sell signal.
+    </div>
+  </div>
+
+  <!-- CRYPTO DETAIL (CoinGecko fallback) -->
+  <div id="pp-crypto" style="display:none">
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="ch">
+        <div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">📈 Crypto Detail — CoinGecko Data</span></div>
+        <div class="btn-row">
+          <span class="last-upd" id="cryptoUpd">Not loaded — click Refresh</span>
+          <button class="btn btn-g" onclick="loadCrypto()" id="cryptoBtn">↺ Refresh</button>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="crypto-grid" id="cryptoGrid">
+          <div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:2rem;font-size:12px">Click <strong>Refresh</strong> to load live prices via CoinGecko</div>
+        </div>
+        <div class="tscroll" style="margin-top:1rem">
+          <table>
+            <thead><tr><th>Rank</th><th>Coin</th><th>Price</th><th>24h</th><th>7d</th><th>MCap</th><th>Volume</th><th>ATH</th><th>Signal</th></tr></thead>
+            <tbody id="cryptoTable"><tr><td colspan="9" style="text-align:center;color:var(--text3);padding:2rem">Click Refresh above</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<script>
+// ═══════════════════ THEME ═══════════════════
+let dark=true;
+document.documentElement.setAttribute('data-theme','dark');
+function toggleTheme(){
+  dark=!dark;
+  document.documentElement.setAttribute('data-theme',dark?'dark':'');
+  document.getElementById('themeBtn').textContent=dark?'☀️':'🌙';
+  // Re-render active charts with new theme colors
+  try{ci()}catch(e){}
+  try{cm()}catch(e){}
+  try{ch()}catch(e){}
+  try{if(compareMode)cmp()}catch(e){}
+}
+
+// ═══════════════════ TABS ═══════════════════
+function switchTab(n,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('panel-'+n).classList.add('on');
+  btn.classList.add('on');
+  if(n==='mortgage')cm();
+  if(n==='hysa')ch();
+  if(n==='crypto')loadTV('overview');
+  // crypto loads on demand via Refresh button only — no auto-load to prevent freeze
+}
+
+// ═══════════════════ UTILS ═══════════════════
+const $=id=>document.getElementById(id);
+const fmtD=(n,d=0)=>n==null?'—':n>=1e9?'$'+(n/1e9).toFixed(2)+'B':n>=1e6?'$'+(n/1e6).toFixed(2)+'M':n>=1e3?'$'+n.toLocaleString('en',{minimumFractionDigits:d,maximumFractionDigits:d}):'$'+n.toFixed(d);
+const fmtN=n=>n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(0)+'K':n.toFixed(0);
+function ur(el,cv){const p=((el.value-el.min)/(el.max-el.min))*100;el.style.background=`linear-gradient(to right,var(${cv}) ${p}%,var(--surface3) ${p}%)`}
+// initRanges handled by initR at bottom
+function now(){return new Date().toLocaleTimeString()}
+
+// ═══════════════════ INCOME STATE ═══════════════════
+let iFreq=52,iStrat=1,iCM='total',iCI=null;
+function sf(f,b){iFreq=f;document.querySelectorAll('#frTg .tb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ci()}
+function ss(s,b){iStrat=s;document.querySelectorAll('#stTg .tb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ci()}
+function sic(m,b){iCM=m;document.querySelectorAll('.ctab').forEach(x=>x.classList.remove('on'));b.classList.add('on');ci()}
+function setDr(v,btn){$('iDr').value=v;$('iDrL').textContent=v+'%';$('iDrD').textContent=v+'%';ur($('iDr'),'--green');$('iEvent').selectedIndex=0;ci()}
+function applyEvent(){const sel=$('iEvent');const v=sel.value;if(!v){setDr(0);return}const parts=v.split(',');const drift=parseInt(parts[0]);setDr(drift);}
+
+// Bidirectional sync: capital ↔ shares
+function syncFromCap(){
+  const cap=parseFloat($('iCap').value)||0;
+  const price=parseFloat($('iPr').value)||1;
+  const sh=(cap/price).toFixed(1);
+  $('iSh').value=sh;
+  $('iShL').textContent=sh;
+}
+function syncFromShares(){
+  const sh=parseFloat($('iSh').value)||0;
+  const price=parseFloat($('iPr').value)||1;
+  const cap=Math.round(sh*price);
+  $('iCap').value=cap;
+  $('iShL').textContent=sh;
+}
+
+// KNOWN ETF DATA
+const KD={
+  MAGY:{name:'Roundhill Mag 7 Covered Call ETF',price:43.00,high:58.34,low:43.01,yld:37,freq:52,chg:-0.29},
+  JEPI:{name:'JPMorgan Equity Premium Income',price:58.20,high:61.40,low:52.10,yld:8.4,freq:12,chg:+0.18},
+  JEPQ:{name:'JPMorgan Nasdaq Equity Premium Income',price:57.80,high:63.20,low:50.40,yld:10.85,freq:12,chg:+0.22},
+  QQQI:{name:'NEOS Nasdaq 100 High Income ETF',price:57.22,high:62.80,low:49.30,yld:14.2,freq:12,chg:+0.14},
+  XDTE:{name:'Roundhill S&P 500 0DTE CC ETF',price:39.44,high:42.10,low:35.20,yld:21.3,freq:52,chg:+0.08},
+  SPYI:{name:'NEOS S&P 500 High Income ETF',price:51.30,high:55.40,low:44.80,yld:12.1,freq:12,chg:+0.11},
+  QYLD:{name:'Global X Nasdaq 100 CC ETF',price:17.20,high:18.90,low:15.40,yld:12.0,freq:12,chg:+0.05},
+  SCHD:{name:'Schwab US Dividend Equity ETF',price:32.50,high:35.80,low:26.40,yld:3.2,freq:4,chg:+0.12},
+  YMAG:{name:'YieldMax Magnificent 7 Fund',price:11.91,high:16.05,low:11.47,yld:46.0,freq:52,chg:-0.08},
+  NVDY:{name:'YieldMax NVDA Option Income',price:16.40,high:24.80,low:13.20,yld:50.0,freq:52,chg:+0.09},
+};
+
+async function fetchTicker(){
+  const sym=$('tickSym').value.trim().toUpperCase();
+  if(!sym){showS('Enter a ticker symbol','err');return}
+  $('fetchBtn').disabled=true;
+  showS('Fetching '+sym+'...','load');
+  try{
+    const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`);
+    if(r.ok){
+      const d=await r.json();
+      const m=d?.chart?.result?.[0]?.meta;
+      if(m){
+        populate({name:m.longName||m.shortName||sym,price:m.regularMarketPrice,high:m.fiftyTwoWeekHigh,low:m.fiftyTwoWeekLow,cap:m.marketCap,chg:m.regularMarketChange,yld:null},sym);
+        showS('✓ Live data loaded for '+sym,'ok');return;
+      }
+    }throw new Error('fallback');
+  }catch{
+    if(KD[sym]){
+      const k=KD[sym];
+      populate({name:k.name,price:k.price,high:k.high,low:k.low,cap:null,chg:k.chg,yld:k.yld},sym);
+      $('iY').value=k.yld;['iYL','iYD'].forEach(id=>{$(id).textContent=k.yld+'%'});ur($('iY'),'--green');
+      iFreq=k.freq;document.querySelectorAll('#frTg .tb').forEach((b,i)=>b.classList.toggle('on',i===(k.freq===52?0:k.freq===12?1:2)));
+      showS('✓ Loaded data for '+sym,'ok');
+    }else showS('Could not fetch '+sym+'. Enter values manually.','err');
+  }
+  $('fetchBtn').disabled=false;ci();
+}
+
+function populate(d,sym){
+  $('tiName').textContent=d.name||sym;
+  $('tiPrice').textContent=d.price?'$'+parseFloat(d.price).toFixed(2):'—';
+  const chgPos=d.chg>=0;
+  $('tiChg').textContent=d.chg?(chgPos?'+':'')+parseFloat(d.chg).toFixed(2):' —';
+  $('tiChg').style.color=d.chg>0?'var(--green)':d.chg<0?'var(--red)':'var(--text3)';
+  $('ti52H').textContent=d.high?'$'+parseFloat(d.high).toFixed(2):'—';
+  $('ti52L').textContent=d.low?'$'+parseFloat(d.low).toFixed(2):'—';
+  $('tiCap').textContent=d.cap?fmtN(d.cap):'—';
+  if(d.price){$('iPr').value=parseFloat(d.price).toFixed(2);$('iPrL').textContent='$'+parseFloat(d.price).toFixed(2)}
+  if(d.yld){$('iY').value=d.yld;['iYL','iYD'].forEach(id=>{$(id).textContent=d.yld+'%'});ur($('iY'),'--green')}
+  $('fetchBtn').disabled=false;
+}
+
+function showS(msg,type){const b=$('sbar');b.className='sbar '+type;b.textContent=msg;if(type==='ok'||type==='warn')setTimeout(()=>{b.style.display='none'},4000)}
+function ql(s){$('tickSym').value=s;fetchTicker()}
+
+// ═══════════════════ INCOME CALC ═══════════════════
+function runIM(cap,price,yld,drift,reinv,tax,yrs,addM,freq){
+  let p=price,s=cap/price,ti=cap,td=0,tc=0;
+  const rows=[],labels=['Now'],posVals=[Math.round(cap)],totals=[Math.round(cap)],monthlyIncs=[0],shareVals=[parseFloat(s.toFixed(1))];
+  for(let y=1;y<=yrs;y++){
+    for(let m=0;m<12;m++){
+      p*=Math.pow(1+drift,1/12);
+      const ppm=freq/12;
+      for(let pp=0;pp<Math.round(ppm);pp++){
+        const div=p*(yld/freq)*s;
+        td+=div;
+        const rv=div*reinv,cash=div*(1-reinv)*(1-tax);
+        tc+=cash;if(rv>0)s+=rv/p;
+      }
+      if(addM>0){s+=addM/p;ti+=addM}
+    }
+    const pv=s*p,net=(pv+tc)-ti,mo=p*yld*s/12*(1-(reinv===0?tax:0)),pp2=mo/(freq/12),yoc=p*yld*s/ti*100;
+    rows.push({y,p,s,pv,td,tc,ti,net,mo,wk:mo/4.33,pp:pp2,an:mo*12,yoc,pos:net>=0});
+    labels.push('Yr '+y);posVals.push(Math.round(pv));totals.push(Math.round(pv+tc));
+    monthlyIncs.push(Math.round(mo));shareVals.push(parseFloat(s.toFixed(1)));
+  }
+  return{rows,labels,posVals,totals,monthlyIncs,shareVals};
+}
+
+function ci(){
+  const shares=parseFloat($('iSh').value)||0,price=parseFloat($('iPr').value)||43.00;
+  const cap=shares*price,
+    yld=parseFloat($('iY').value)/100,drift=parseFloat($('iDr').value)/100,
+    yrs=parseInt($('iYr').value)||10,addM=parseFloat($('iAdd').value)||0,
+    tax=parseFloat($('iTx').value)||0;
+  const m=runIM(cap,price,yld,drift,iStrat,tax,yrs,addM,iFreq);
+  const last=m.rows[m.rows.length-1],sh=shares;
+  const wk=price*yld/iFreq*sh*(1-(iStrat===0?tax:0)),mo=price*yld*sh/12*(1-(iStrat===0?tax:0));
+  const fl=iFreq===52?'Weekly':iFreq===12?'Monthly':'Quarterly';
+  $('iStats').innerHTML=`
+    <div class="stat sg"><div class="sl">${fl} now</div><div class="sv">${fmtD(wk,0)}</div><div class="ss">${sh.toFixed(1)} shares</div></div>
+    <div class="stat sb"><div class="sl">Monthly now</div><div class="sv">${fmtD(mo,0)}</div><div class="ss">avg per month</div></div>
+    <div class="stat sa"><div class="sl">Annual now</div><div class="sv">${fmtD(mo*12,0)}</div><div class="ss">current run rate</div></div>
+    <div class="stat sg"><div class="sl">Yr ${yrs} monthly</div><div class="sv">${fmtD(last.mo,0)}</div><div class="ss">DRIP compounded</div></div>
+    <div class="stat ${last.pos?'sg':'sr'}"><div class="sl">Yr ${yrs} P&L</div><div class="sv">${last.pos?'+':''}${fmtD(last.net,0)}</div><div class="ss">${((last.net/cap)*100).toFixed(1)}% return</div></div>
+    <div class="stat sp"><div class="sl">Yr ${yrs} shares</div><div class="sv">${Math.round(last.s).toLocaleString()}</div><div class="ss">started ${sh.toFixed(1)}</div></div>`;
+  const bear=runIM(cap,price,yld,-0.1,iStrat,tax,yrs,addM,iFreq);
+  const bull=runIM(cap,price,yld,0.1,iStrat,tax,yrs,addM,iFreq);
+  if(iCI)iCI.destroy();
+  let ds;
+  if(iCM==='total')ds=[{label:'Total return',data:m.totals,borderColor:'var(--green)',backgroundColor:'rgba(22,163,74,0.06)',fill:true,tension:.4,pointRadius:3},{label:'Position',data:m.posVals,borderColor:'var(--blue)',backgroundColor:'transparent',tension:.4,pointRadius:2,borderDash:[5,3]},{label:'Invested',data:Array(m.labels.length).fill(Math.round(cap)),borderColor:'var(--text4)',backgroundColor:'transparent',tension:0,pointRadius:0,borderDash:[2,4]}];
+  else if(iCM==='income')ds=[{label:'Monthly',data:m.monthlyIncs,borderColor:'var(--amber)',backgroundColor:'rgba(217,119,6,0.08)',fill:true,tension:.4,pointRadius:3}];
+  else if(iCM==='shares')ds=[{label:'Shares',data:m.shareVals,borderColor:'var(--purple)',backgroundColor:'rgba(124,58,237,0.08)',fill:true,tension:.4,pointRadius:3}];
+  else ds=[{label:'Bear',data:bear.totals,borderColor:'var(--red)',backgroundColor:'transparent',tension:.4,pointRadius:2,borderDash:[5,3]},{label:'Base',data:m.totals,borderColor:'var(--blue)',backgroundColor:'rgba(29,78,216,0.05)',fill:true,tension:.4,pointRadius:2},{label:'Bull',data:bull.totals,borderColor:'var(--green)',backgroundColor:'rgba(22,163,74,0.06)',fill:true,tension:.4,pointRadius:3,borderWidth:2}];
+  iCI=new Chart($('iChart').getContext('2d'),{type:'line',data:{labels:m.labels,datasets:ds},options:cO()});
+  $('iTb').innerHTML=m.rows.map(r=>`<tr><td style="color:var(--text3)">Yr ${r.y}</td><td style="font-family:var(--font-m)">$${r.p.toFixed(2)}</td><td style="color:var(--amber);font-family:var(--font-m)">${Math.round(r.s).toLocaleString()}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.wk,0)}/wk</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.pp,0)}</td><td style="color:var(--green);font-family:var(--font-m);font-weight:500">${fmtD(r.mo,0)}/mo</td><td style="font-family:var(--font-m)">${fmtD(r.an,0)}/yr</td><td style="font-family:var(--font-m)">${fmtD(r.pv,0)}</td><td style="color:var(--text3);font-family:var(--font-m)">${fmtD(r.tc,0)}</td><td style="color:${r.pos?'var(--green)':'var(--red)'};font-family:var(--font-m)">${r.pos?'+':''}${fmtD(r.net,0)}</td><td style="color:var(--purple);font-family:var(--font-m)">${r.yoc.toFixed(1)}%</td></tr>`).join('');
+  $('iAl').innerHTML=last.pos?`<div class="abox abox-g" style="margin-top:.75rem"><strong>✅ Profitable</strong> — ${fmtD(cap,0)} grows to ${fmtD(last.pv+last.tc,0)} in ${yrs} years generating ${fmtD(last.mo,0)}/month. Total return: ${((last.net/cap)*100).toFixed(1)}%.</div>`:
+    `<div class="abox abox-r" style="margin-top:.75rem"><strong>⚠ Capital at risk</strong> — Price erosion outpacing income. Try DRIP strategy or reduce price drift.</div>`;
+}
+
+// ═══════════════════ MORTGAGE ═══════════════════
+let mCI=null;
+function cm(){
+  const hv=parseFloat($('mHV').value)||500000,bal=parseFloat($('mBal').value)||450000;
+  const rate=parseFloat($('mR').value)/100/12,term=parseInt($('mT').value)*12;
+  const extra=parseFloat($('mEx').value)||0,lump=parseFloat($('mLp').value)||0;
+  const base=bal*rate/(1-Math.pow(1+rate,-term)),total=base+extra;
+  let b=bal,ti=0,bRows=[];
+  for(let m=0;m<term&&b>0;m++){const i=b*rate,pr=Math.min(base-i,b);ti+=i;b=Math.max(0,b-pr);bRows.push(b)}
+  const bTI=ti;
+  b=bal-lump;ti=0;let mos=0,yRows=[],yB=[bal-lump],yBB=[bal];let yi=0,yp=0;
+  while(b>0&&mos<term){const i=b*rate,pr=Math.min(total-i,b);yi+=i;yp+=pr;ti+=i;b=Math.max(0,b-pr);mos++;
+    if(mos%12===0||b<=0){const yr=Math.ceil(mos/12),eq=hv-b;yRows.push({yr,pmt:total,prin:yp,int:yi,bal:b,eq,eqP:eq/hv*100});yB.push(Math.round(b));yBB.push(Math.round(Math.max(0,bRows[Math.min(mos-1,bRows.length-1)]||0)));yi=0;yp=0}}
+  const iSv=bTI-ti,py=Math.floor(mos/12),pm=mos%12,ts=term-mos;
+  $('mStats').innerHTML=`<div class="stat sb"><div class="sl">Monthly payment</div><div class="sv">${fmtD(base,0)}</div><div class="ss">P+I</div></div><div class="stat ${extra>0?'sg':'sb'}"><div class="sl">With extra</div><div class="sv">${fmtD(total,0)}</div><div class="ss">${extra>0?'+'+fmtD(extra,0)+' extra':'standard'}</div></div><div class="stat sa"><div class="sl">Payoff</div><div class="sv">${py}yr ${pm}mo</div><div class="ss">${ts>0?'saves '+Math.floor(ts/12)+'yr '+ts%12+'mo':''}</div></div><div class="stat ${iSv>0?'sg':'sr'}"><div class="sl">Interest saved</div><div class="sv">${iSv>0?fmtD(iSv,0):'$0'}</div><div class="ss">vs original</div></div><div class="stat sr"><div class="sl">Total interest</div><div class="sv">${fmtD(ti,0)}</div><div class="ss">over loan life</div></div><div class="stat sp"><div class="sl">Current equity</div><div class="sv">${fmtD(hv-bal,0)}</div><div class="ss">${((hv-bal)/hv*100).toFixed(1)}% owned</div></div>`;
+  $('mSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${[['Loan balance',fmtD(bal,0),'var(--text)'],['Base monthly payment',fmtD(base,2),'var(--text)'],['Payment with extra',fmtD(total,2),'var(--green)'],['Original term',parseInt($('mT').value)+' years','var(--text)'],['New payoff',py+' yrs '+pm+' mos',extra>0?'var(--green)':'var(--text)'],['Time saved',extra>0?Math.floor(ts/12)+'yr '+ts%12+'mo':'—',extra>0?'var(--green)':'var(--text3)'],['Interest saved',extra>0?fmtD(iSv,0):'—',extra>0?'var(--green)':'var(--text3)'],['Total interest',fmtD(ti,0),'var(--red)'],['LTV',(bal/hv*100).toFixed(1)+'%','var(--text)'],['Home equity',fmtD(hv-bal,0),'var(--purple)']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div>${iSv>0?`<div class="abox abox-g" style="margin-top:.75rem"><strong>🎯 Extra payment wins:</strong> Adding ${fmtD(extra,0)}/mo saves ${fmtD(iSv,0)} and frees you ${Math.floor(ts/12)} years ${ts%12} months sooner.</div>`:''}`;
+  const lbls=yRows.map(r=>'Yr '+r.yr);
+  if(mCI)mCI.destroy();
+  mCI=new Chart($('mChart').getContext('2d'),{type:'line',data:{labels:['Now',...lbls],datasets:[{label:'With extra',data:yB,borderColor:'var(--green)',backgroundColor:'rgba(22,163,74,.08)',fill:true,tension:.4,pointRadius:3},{label:'Original',data:yBB,borderColor:'var(--text4)',backgroundColor:'transparent',tension:.4,pointRadius:2,borderDash:[5,3]}]},options:cO()});
+  $('mTb').innerHTML=yRows.map(r=>`<tr><td style="color:var(--text3)">Yr ${r.yr}</td><td style="font-family:var(--font-m)">${fmtD(r.pmt,0)}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.prin,0)}</td><td style="color:var(--red);font-family:var(--font-m)">${fmtD(r.int,0)}</td><td style="font-family:var(--font-m);font-weight:500">${fmtD(r.bal,0)}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.eq,0)}</td><td><div class="progress"><div class="pf" style="width:${Math.min(100,r.eqP).toFixed(0)}%;background:var(--green)"></div></div><span style="font-size:9px;color:var(--text3)">${r.eqP.toFixed(1)}%</span></td></tr>`).join('');
+}
+
+// ═══════════════════ HYSA ═══════════════════
+let hCI=null,hComp=365;
+function shc(c,b){hComp=c;document.querySelectorAll('#panel-hysa .tg .tb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ch()}
+function ch(){
+  const type=$('hType')?.value||'hysa';
+  const nr=$('hNameRow');
+  if(nr) nr.style.display=(type==='stock'||type==='crypto'||type==='realestate'||type==='other')?'block':'none';
+  const st=parseFloat($('hSt').value)||234000,rate=parseFloat($('hR').value)/100;
+  const addM=parseFloat($('hAdd').value)||0,yrs=parseInt($('hYr').value)||10;
+  const tax=parseFloat($('hTx').value)||0,infl=parseFloat($('hIn').value)/100;
+  let bal=st,tInt=0,tC=st;
+  const rows=[],bVals=[st],iVals=[st],labels=['Now'];
+  for(let y=1;y<=yrs;y++){
+    let yInt=0;
+    for(let m=0;m<12;m++){
+      const pp=hComp===365?30.4:hComp===12?1:hComp===4?0.333:0.0833;
+      for(let d=0;d<Math.round(pp);d++){yInt+=bal*(rate/hComp);bal+=bal*(rate/hComp)}
+      if(addM>0){bal+=addM;tC+=addM}
+    }
+    const tp=yInt*tax,ni=yInt-tp;tInt+=ni;
+    const iv=st*Math.pow(1+infl,y)+tC-st;
+    rows.push({y,bal,yInt,tp,ni,tC,iv,rg:bal-iv});
+    bVals.push(Math.round(bal));iVals.push(Math.round(iv));labels.push('Yr '+y);
+  }
+  const last=rows[rows.length-1],mo=rows[0]?.yInt/12||0;
+  const types={hysa:'HYSA',brokerage:'Brokerage','401k':'401(k)',roth:'Roth IRA',cd:'CD',stock:'Stock/ETF',crypto:'Crypto',realestate:'Real Estate',other:$('hName')?.value||'Other'};
+  $('hStats').innerHTML=`<div class="stat sp"><div class="sl">Balance yr ${yrs}</div><div class="sv">${fmtD(last.bal,0)}</div><div class="ss">${types[$('hType').value]}</div></div><div class="stat sg"><div class="sl">Net interest</div><div class="sv">${fmtD(tInt,0)}</div><div class="ss">after ${(tax*100).toFixed(0)}% tax</div></div><div class="stat sb"><div class="sl">Monthly income yr1</div><div class="sv">${fmtD(mo,0)}</div><div class="ss">at ${(rate*100).toFixed(2)}% APY</div></div><div class="stat ${last.rg>0?'sg':'sr'}"><div class="sl">Real gain vs inflation</div><div class="sv">${last.rg>0?'+':''}${fmtD(last.rg,0)}</div><div class="ss">after ${(infl*100).toFixed(1)}% inflation</div></div><div class="stat sa"><div class="sl">Total contributed</div><div class="sv">${fmtD(last.tC,0)}</div><div class="ss">incl. additions</div></div><div class="stat ${tax>0?'sr':'sg'}"><div class="sl">Tax yr 1</div><div class="sv">${fmtD(rows[0]?.tp||0,0)}</div><div class="ss">${tax>0?'ordinary income':'tax-free ✓'}</div></div>`;
+  $('hSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${[['Account',types[$('hType').value],'var(--text)'],['Starting balance',fmtD(st,0),'var(--text)'],['APY',(rate*100).toFixed(2)+'%','var(--purple)'],['Monthly add',fmtD(addM,0),'var(--text)'],['Compounding',hComp===365?'Daily':hComp===12?'Monthly':hComp===4?'Quarterly':'Annual','var(--text)'],['Balance yr '+yrs,fmtD(last.bal,0),'var(--purple)'],['Net interest',fmtD(tInt,0),'var(--green)'],['Inflation value',fmtD(last.iv,0),'var(--red)'],['Real gain',fmtD(last.rg,0),last.rg>0?'var(--green)':'var(--red)'],['Beating inflation',last.rg>0?'✅ Yes':'❌ No',last.rg>0?'var(--green)':'var(--red)']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div><div class="abox ${rate>infl?'abox-g':'abox-a'}" style="margin-top:.75rem">${rate>infl?`<strong>✅ Beating inflation</strong> — Your ${(rate*100).toFixed(2)}% APY exceeds ${(infl*100).toFixed(1)}% inflation. Real wealth is growing.`:`<strong>⚠ Losing to inflation</strong> — ${(rate*100).toFixed(2)}% APY vs ${(infl*100).toFixed(1)}% inflation. Consider higher-yield vehicles.`}</div>`;
+  if(hCI)hCI.destroy();
+  hCI=new Chart($('hChart').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Balance',data:bVals,borderColor:'var(--purple)',backgroundColor:'rgba(124,58,237,0.08)',fill:true,tension:.4,pointRadius:3},{label:'Inflation adjusted',data:iVals,borderColor:'var(--red)',backgroundColor:'transparent',tension:.4,pointRadius:2,borderDash:[5,3]},{label:'Contributed',data:rows.reduce((a,r)=>[...a,Math.round(r.tC)],[st]),borderColor:'var(--text4)',backgroundColor:'transparent',tension:0,pointRadius:0,borderDash:[2,4]}]},options:cO()});
+  $('hTb').innerHTML=rows.map(r=>`<tr><td style="color:var(--text3)">Yr ${r.y}</td><td style="font-family:var(--font-m);font-weight:500;color:var(--purple)">${fmtD(r.bal,0)}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.yInt,0)}</td><td style="color:var(--red);font-family:var(--font-m)">${fmtD(r.tp,0)}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.ni,0)}</td><td style="color:var(--text3);font-family:var(--font-m)">${fmtD(r.tC,0)}</td><td style="color:var(--red);font-family:var(--font-m)">${fmtD(r.iv,0)}</td><td style="color:${r.rg>0?'var(--green)':'var(--red)'};font-family:var(--font-m)">${r.rg>0?'+':''}${fmtD(r.rg,0)}</td></tr>`).join('');
+}
+
+// ═══════════════════ COMPARE MODE ═══════════════════
+let compareMode=false, cCI=null;
+function setCompare(on,btn){
+  compareMode=on;
+  document.querySelectorAll('#panel-hysa > div:first-child .tg .tb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  $('hSingle').style.display=on?'none':'block';
+  $('hCompare').style.display=on?'block':'none';
+  if(on){renderCmpForm('A','hysa');renderCmpForm('B','income_etf');setTimeout(()=>{initCmpRanges();cmp()},50)}
+  else ch();
+}
+
+// Type configs: label, fields, defaults, math
+const CTYPES={
+  hysa:{
+    label:'HYSA — High Yield Savings',
+    rateLbl:'APY rate (%)',rateMax:10,rateDef:3.75,
+    taxDef:'0.24',taxOpts:[['0','0% — Roth/tax-free'],['0.22','22% ordinary income'],['0.24','24% ordinary income'],['0.32','32% ordinary income']],
+    nameDef:'HYSA',note:'HYSA: principal 100% FDIC guaranteed. Interest compounds daily. Taxed as ordinary income annually. Zero capital risk.',
+    extra:'',mathType:'compound'
+  },
+  income_etf:{
+    label:'Income ETF (covered call)',
+    rateLbl:'Distribution yield (%)',rateMax:80,rateDef:37,
+    taxDef:'0.24',taxOpts:[['0','0% — Roth IRA (tax-free)'],['0.22','22% ordinary income'],['0.24','24% ordinary income'],['0.32','32% ordinary income']],
+    nameDef:'Income ETF',note:'Income ETF: weekly/monthly distributions from option premiums. Capital fluctuates with underlying stocks. Yield changes with market volatility.',
+    extra:`<div class="fl"><div class="fll">Share price ($)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="cPr_S_" value="43.00" step="0.01" oninput="cmp()"></div></div>
+      <div class="fl"><div class="fll">Price drift/yr (%)</div><div class="iw"><input type="number" id="cDrift_S_" value="0" min="-30" max="30" step="1" oninput="cmp()"></div></div>
+      <div class="fl"><div class="fll">Strategy</div><div class="tg"><div class="tb on" onclick="setCStrat('S_',1,this)">DRIP 100%</div><div class="tb" onclick="setCStrat('S_',0.5,this)">Hybrid 50%</div><div class="tb" onclick="setCStrat('S_',0,this)">Cash Out</div></div></div>`,
+    mathType:'income_etf'
+  },
+  stock:{
+    label:'Stock / ETF growth',
+    rateLbl:'Expected annual growth (%)',rateMax:50,rateDef:10,
+    taxDef:'0.15',taxOpts:[['0','0% — Roth/IRA (tax-free)'],['0.15','15% long-term capital gains'],['0.20','20% long-term capital gains'],['0.24','24% ordinary (short-term)']],
+    nameDef:'S&P 500 ETF',note:'Stock/ETF: price appreciation is the primary return. Small dividend yield possible. Long-term capital gains rate applies if held 1yr+. No guaranteed income.',
+    extra:`<div class="fl"><div class="fll">Dividend yield (%)</div><div class="iw"><input type="number" id="cDiv_S_" value="1.5" min="0" max="15" step="0.1" oninput="cmp()"></div></div>`,
+    mathType:'stock'
+  },
+  crypto:{
+    label:'Crypto asset',
+    rateLbl:'Expected annual growth (%)',rateMax:100,rateDef:40,
+    taxDef:'0.15',taxOpts:[['0','0% — no sell (unrealized)'],['0.15','15% long-term capital gains'],['0.20','20% long-term capital gains'],['0.24','24% short-term gains']],
+    nameDef:'Crypto',note:'Crypto: pure price appreciation. Zero income generated while holding. No FDIC or SIPC protection. 80%+ drawdowns have occurred historically. Tax only applies when you sell.',
+    extra:'',mathType:'growth_only'
+  },
+  realestate:{
+    label:'Real Estate (equity)',
+    rateLbl:'Annual appreciation (%)',rateMax:20,rateDef:5,
+    taxDef:'0.15',taxOpts:[['0','0% — 1031 exchange'],['0.15','15% long-term capital gains'],['0.24','24% ordinary income (rental)']],
+    nameDef:'Real Estate',note:'Real Estate: enter net equity return after mortgage, insurance, maintenance, vacancy, and management fees. Factor in property appreciation separately.',
+    extra:`<div class="fl"><div class="fll">Net rental yield (%)</div><div class="iw"><input type="number" id="cRent_S_" value="4" min="0" max="20" step="0.5" oninput="cmp()"></div></div>`,
+    mathType:'realestate'
+  },
+  '401k':{
+    label:'401(k) / IRA',
+    rateLbl:'Annual return (%)',rateMax:20,rateDef:8,
+    taxDef:'0',taxOpts:[['0','0% — tax-deferred (pay later)'],['0.22','22% — Roth (already taxed)'],['0.24','24% — Roth (already taxed)']],
+    nameDef:'401(k)',note:'401(k)/IRA: tax-deferred compound growth. No tax on gains until withdrawal. Employer match is free money — factor it into monthly contribution.',
+    extra:`<div class="fl"><div class="fll">Employer match ($/mo)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="cMatch_S_" value="0" step="50" oninput="cmp()"></div></div>`,
+    mathType:'compound_match'
+  },
+  other:{
+    label:'Other investment',
+    rateLbl:'Expected annual return (%)',rateMax:80,rateDef:10,
+    taxDef:'0.24',taxOpts:[['0','0% — tax-free'],['0.15','15% capital gains'],['0.22','22% ordinary'],['0.24','24% ordinary'],['0.32','32% ordinary']],
+    nameDef:'Investment',note:'Other: enter your expected total annual return. Adjust tax rate to match the actual treatment. The model uses simple annual compounding.',
+    extra:'',mathType:'compound'
+  }
+};
+
+let cStrats={A:1,B:1};
+function setCStrat(side,val,btn){
+  const s=side.replace('S_','');
+  cStrats[s]=val;
+  btn.parentElement.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  cmp();
+}
+
+function renderCmpForm(side, type){
+  const c=CTYPES[type];
+  const col=side==='A'?'--amber':'--cyan';
+  const html=`
+    <div class="fl"><div class="fll">Investment type</div>
+      <select id="cType${side}" onchange="renderCmpForm('${side}',this.value);initCmpRanges();cmp()">
+        ${Object.entries(CTYPES).map(([k,v])=>`<option value="${k}" ${k===type?'selected':''}>${v.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fl"><div class="fll">Name / label</div><input type="text" id="cName${side}" value="${c.nameDef}" oninput="cmp()"></div>
+    <div class="fl"><div class="fll">Starting capital</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="cCap${side}" value="10000" step="500" oninput="cmp()"></div></div>
+    <div class="fl"><div class="fll">${c.rateLbl} <span class="flv" id="cR${side}_lbl">${c.rateDef}%</span></div>
+      <div class="rr"><input type="range" id="cR${side}" min="0.1" max="${c.rateMax}" step="0.1" value="${c.rateDef}" oninput="document.getElementById('cR${side}_lbl').textContent=parseFloat(this.value).toFixed(2)+'%';document.getElementById('cR${side}_d').textContent=parseFloat(this.value).toFixed(2)+'%';ur(this,'${col}');cmp()"><span class="rv" id="cR${side}_d">${c.rateDef}%</span></div>
+    </div>
+    ${c.extra.replace(/S_/g,side)}
+    <div class="fl"><div class="fll">Monthly contribution</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="cAdd${side}" value="0" step="50" oninput="cmp()"></div></div>
+    <div class="fl"><div class="fll">Tax rate</div>
+      <select id="cTax${side}" onchange="cmp()">
+        ${c.taxOpts.map(([v,l])=>`<option value="${v}" ${v===c.taxDef?'selected':''}>${l}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fl" style="background:var(--surface2);border-radius:var(--r);padding:.6rem .75rem;font-size:10px;color:var(--text3)">${c.note}</div>
+  `;
+  $('cForm'+side).innerHTML=html;
+}
+
+function initCmpRanges(){
+  ['A','B'].forEach(s=>{
+    const el=$('cR'+s);
+    if(el) ur(el, s==='A'?'--amber':'--cyan');
+  });
+}
+
+// Type-specific math engines
+function runCmpModel(side,yrs){
+  const type=$('cType'+side)?.value||'hysa';
+  const cap=parseFloat($('cCap'+side)?.value)||10000;
+  const rate=parseFloat($('cR'+side)?.value)/100||0.04;
+  const addM=parseFloat($('cAdd'+side)?.value)||0;
+  const tax=parseFloat($('cTax'+side)?.value)||0;
+  const mt=CTYPES[type]?.mathType||'compound';
+
+  const rows=[],bVals=[cap];
+  let bal=cap,tC=cap;
+
+  for(let y=1;y<=yrs;y++){
+    let yReturn=0;
+
+    if(mt==='compound'){
+      // HYSA / Other: simple daily compound interest
+      for(let m=0;m<12;m++){
+        for(let d=0;d<30;d++){const di=bal*(rate/365);yReturn+=di;bal+=di}
+        if(addM>0){bal+=addM;tC+=addM}
+      }
+      yReturn*=(1-tax);
+
+    } else if(mt==='income_etf'){
+      // Income ETF: yield on NAV, price drift, DRIP
+      const price0=parseFloat($('cPr'+side)?.value)||43.00;
+      const drift=parseFloat($('cDrift'+side)?.value)/100||0;
+      const strat=cStrats[side]??1;
+      let shares=cap/price0, price=price0*Math.pow(1+drift,y-1);
+      // recalc shares from scratch each year
+      shares=cap/price0;
+      let tempBal=cap,tempTC=cap,tempCash=0;
+      for(let yr=1;yr<=y;yr++){
+        let p=price0*Math.pow(1+drift,yr-1);
+        for(let m=0;m<12;m++){
+          p*=Math.pow(1+drift,1/12);
+          const wDiv=p*rate/52;
+          for(let w=0;w<4;w++){
+            const div=wDiv*shares;
+            yReturn+=yr===y?div:0;
+            const rv=div*strat,cash=div*(1-strat)*(1-tax);
+            tempCash+=cash;
+            if(rv>0) shares+=rv/p;
+          }
+          if(addM>0&&yr<=y){shares+=addM/p;tempTC+=addM}
+        }
+      }
+      bal=shares*price0*Math.pow(1+drift,y)+tempCash;
+      tC=cap+addM*12*y;
+      const mo=bal*rate/12*(1-tax);
+      rows.push({y,bal,mo,tC});
+      bVals.push(Math.round(bal));
+      continue; // skip the default push below
+
+    } else if(mt==='stock'){
+      // Stock: price appreciation + small dividend
+      const divYld=parseFloat($('cDiv'+side)?.value)/100||0.015;
+      for(let m=0;m<12;m++){
+        bal*=Math.pow(1+rate,1/12);
+        const divInc=bal*divYld/12;
+        yReturn+=divInc;
+        bal+=divInc;
+        if(addM>0){bal+=addM;tC+=addM}
+      }
+      yReturn*=(1-tax);
+
+    } else if(mt==='growth_only'){
+      // Crypto: pure appreciation, no income
+      for(let m=0;m<12;m++){
+        bal*=Math.pow(1+rate,1/12);
+        if(addM>0){bal+=addM;tC+=addM}
+      }
+      yReturn=0; // no realized income
+
+    } else if(mt==='realestate'){
+      // Real estate: appreciation + net rental
+      const rentYld=parseFloat($('cRent'+side)?.value)/100||0.04;
+      for(let m=0;m<12;m++){
+        bal*=Math.pow(1+rate,1/12);
+        const rent=bal*rentYld/12*(1-tax);
+        yReturn+=rent;
+        bal+=rent;
+        if(addM>0){bal+=addM;tC+=addM}
+      }
+
+    } else if(mt==='compound_match'){
+      // 401k with employer match
+      const match=parseFloat($('cMatch'+side)?.value)||0;
+      for(let m=0;m<12;m++){
+        for(let d=0;d<30;d++){const di=bal*(rate/365);yReturn+=di;bal+=di}
+        if(addM>0){bal+=addM;tC+=addM}
+        if(match>0){bal+=match;tC+=match}
+      }
+    }
+
+    const mo=mt==='growth_only'?0:bal*rate/12*(1-(mt==='compound'?tax:0));
+    rows.push({y,bal,mo,tC});
+    bVals.push(Math.round(bal));
+  }
+  return{rows,bVals};
+}
+
+function cmp(){
+  const yrs=parseInt($('cYr')?.value)||10;
+  const infl=parseFloat($('cInf')?.value)/100||0.032;
+  const nameA=$('cNameA')?.value||'A',nameB=$('cNameB')?.value||'B';
+  const capA=parseFloat($('cCapA')?.value)||10000,capB=parseFloat($('cCapB')?.value)||10000;
+
+  const mA=runCmpModel('A',yrs),mB=runCmpModel('B',yrs);
+  if(!mA.rows.length||!mB.rows.length) return;
+
+  const lastA=mA.rows[mA.rows.length-1],lastB=mB.rows[mB.rows.length-1];
+  const winnerB=lastB.bal>lastA.bal,diff=Math.abs(lastB.bal-lastA.bal);
+
+  $('cThA').textContent=nameA+' Balance';$('cThB').textContent=nameB+' Balance';
+
+  $('cStats').innerHTML=`
+    <div class="stat sa"><div class="sl">${nameA} yr ${yrs}</div><div class="sv">${fmtD(lastA.bal,0)}</div><div class="ss">${((lastA.bal-capA)/capA*100).toFixed(1)}% total return</div></div>
+    <div class="stat sc"><div class="sl">${nameB} yr ${yrs}</div><div class="sv">${fmtD(lastB.bal,0)}</div><div class="ss">${((lastB.bal-capB)/capB*100).toFixed(1)}% total return</div></div>
+    <div class="stat sg"><div class="sl">Winner yr ${yrs}</div><div class="sv">${winnerB?nameB:nameA}</div><div class="ss">${fmtD(diff,0)} ahead</div></div>
+    <div class="stat sa"><div class="sl">${nameA} monthly</div><div class="sv">${fmtD(lastA.mo,0)}/mo</div><div class="ss">yr ${yrs}</div></div>
+    <div class="stat sc"><div class="sl">${nameB} monthly</div><div class="sv">${fmtD(lastB.mo,0)}/mo</div><div class="ss">yr ${yrs}</div></div>
+    <div class="stat sp"><div class="sl">Income winner</div><div class="sv">${lastB.mo>lastA.mo?nameB:nameA}</div><div class="ss">${fmtD(Math.abs(lastB.mo-lastA.mo),0)}/mo more</div></div>`;
+
+  const labels=['Now',...mA.rows.map(r=>'Yr '+r.y)];
+  if(cCI)cCI.destroy();
+  cCI=new Chart($('cChart').getContext('2d'),{type:'line',data:{labels,datasets:[
+    {label:nameA,data:mA.bVals,borderColor:'var(--amber)',backgroundColor:'rgba(217,119,6,0.07)',fill:true,tension:.4,pointRadius:3},
+    {label:nameB,data:mB.bVals,borderColor:'var(--cyan)',backgroundColor:'rgba(8,145,178,0.07)',fill:true,tension:.4,pointRadius:3},
+    {label:'Inflation',data:[capA,...mA.rows.map((_,i)=>Math.round(capA*Math.pow(1+infl,i+1)))],borderColor:'var(--red)',backgroundColor:'transparent',tension:.4,pointRadius:0,borderDash:[3,3]},
+  ]},options:cO()});
+
+  const cx=mA.rows.findIndex((r,i)=>mB.rows[i]&&mB.rows[i].bal>r.bal);
+  $('cWinner').innerHTML=`<div style="display:flex;flex-direction:column;gap:7px">${[
+    ['Yr '+yrs+' winner',winnerB?nameB:nameA,'var(--green)'],
+    ['Margin',fmtD(diff,0),'var(--purple)'],
+    [nameA+' total return',((lastA.bal-capA)/capA*100).toFixed(1)+'%','var(--amber)'],
+    [nameB+' total return',((lastB.bal-capB)/capB*100).toFixed(1)+'%','var(--cyan)'],
+    ['Crossover year',cx>=0?'Year '+(cx+1):'Never',cx>=0?'var(--purple)':'var(--text3)'],
+    [nameA+' monthly yr '+yrs,fmtD(lastA.mo,0)+'/mo','var(--amber)'],
+    [nameB+' monthly yr '+yrs,fmtD(lastB.mo,0)+'/mo','var(--cyan)'],
+    ['Income leader',lastB.mo>lastA.mo?nameB:nameA,'var(--green)'],
+  ].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div>
+  <div class="abox ${winnerB?'abox-g':'abox-a'}" style="margin-top:.75rem;font-size:11px"><strong>${winnerB?nameB:nameA} wins by year ${yrs}</strong> — ${fmtD(diff,0)} more. ${lastB.mo>lastA.mo?nameB:nameA} generates higher monthly income at ${fmtD(Math.max(lastA.mo,lastB.mo),0)}/mo.</div>`;
+
+  $('cTb').innerHTML=mA.rows.map((rA,i)=>{const rB=mB.rows[i];const lead=rB.bal>rA.bal?`<span class="bdg bdg-a" style="background:var(--cyan-l);color:var(--cyan)">${nameB}</span>`:`<span class="bdg bdg-a">${nameA}</span>`;
+    return `<tr><td style="color:var(--text3)">Yr ${rA.y}</td><td style="color:var(--amber);font-family:var(--font-m)">${fmtD(rA.bal,0)}</td><td style="color:var(--amber);font-family:var(--font-m)">${fmtD(rA.mo,0)}/mo</td><td style="color:var(--amber);font-family:var(--font-m)">${fmtD(rA.bal-capA,0)}</td><td style="color:var(--cyan);font-family:var(--font-m)">${fmtD(rB.bal,0)}</td><td style="color:var(--cyan);font-family:var(--font-m)">${fmtD(rB.mo,0)}/mo</td><td style="color:var(--cyan);font-family:var(--font-m)">${fmtD(rB.bal-capB,0)}</td><td style="font-family:var(--font-m);color:var(--purple)">${fmtD(Math.abs(rB.bal-rA.bal),0)}</td><td>${lead}</td></tr>`;
+  }).join('');
+}
+
+
+// ═══════════════════ MARKET PULSE — TradingView ═══════════════════
+const tvLoaded={};
+function spt(n,btn){
+  ['overview','sheatmap','cheatmap','movers','crypto'].forEach(x=>{
+    const el=$('pp-'+x);if(el) el.style.display=x===n?'block':'none';
+  });
+  document.querySelectorAll('.pt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  loadTV(n);
+}
+
+function loadTV(section){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const theme=isDark?'dark':'light';
+
+  if(section==='overview'&&!tvLoaded.overview){
+    $('tvOverview').src='https://s.tradingview.com/embed-widget/market-overview/?locale=en#'+encodeURIComponent(JSON.stringify({
+      colorTheme:theme,dateRange:"1D",showChart:true,width:"100%",height:"100%",
+      isTransparent:true,showSymbolLogo:true,showFloatingTooltip:true,
+      tabs:[
+        {title:"Indices",symbols:[
+          {s:"FOREXCOM:SPXUSD",d:"S&P 500"},{s:"FOREXCOM:NSXUSD",d:"Nasdaq"},
+          {s:"FOREXCOM:DJI",d:"Dow Jones"}
+        ]},
+        {title:"Mag 7",symbols:[
+          {s:"NASDAQ:AAPL",d:"Apple"},{s:"NASDAQ:NVDA",d:"Nvidia"},{s:"NASDAQ:MSFT",d:"Microsoft"},
+          {s:"NASDAQ:GOOGL",d:"Alphabet"},{s:"NASDAQ:AMZN",d:"Amazon"},{s:"NASDAQ:META",d:"Meta"},{s:"NASDAQ:TSLA",d:"Tesla"}
+        ]},
+        {title:"Crypto",symbols:[
+          {s:"BITSTAMP:BTCUSD",d:"Bitcoin"},{s:"BITSTAMP:ETHUSD",d:"Ethereum"},
+          {s:"BITSTAMP:XRPUSD",d:"XRP"},{s:"BINANCE:SOLUSDT",d:"Solana"}
+        ]}
+      ]
+    }));
+    tvLoaded.overview=true;
+  }
+
+  if(section==='sheatmap'&&!tvLoaded.sheatmap){
+    $('tvStockHeat').src='https://s.tradingview.com/embed-widget/stock-heatmap/?locale=en#'+encodeURIComponent(JSON.stringify({
+      exchanges:[],dataSource:"SPX500",grouping:"sector",blockSize:"market_cap_basic",
+      blockColor:"change",hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,
+      hasSymbolTooltip:true,colorTheme:theme,width:"100%",height:"100%",isTransparent:true
+    }));
+    tvLoaded.sheatmap=true;
+  }
+
+  if(section==='cheatmap'&&!tvLoaded.cheatmap){
+    $('tvCryptoHeat').src='https://s.tradingview.com/embed-widget/crypto-coins-heatmap/?locale=en#'+encodeURIComponent(JSON.stringify({
+      dataSource:"Crypto",blockSize:"market_cap_calc",blockColor:"change",
+      hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,
+      colorTheme:theme,width:"100%",height:"100%",isTransparent:true
+    }));
+    tvLoaded.cheatmap=true;
+  }
+
+  if(section==='movers'&&!tvLoaded.movers){
+    $('tvMovers').src='https://s.tradingview.com/embed-widget/hotlists/?locale=en#'+encodeURIComponent(JSON.stringify({
+      colorTheme:theme,dateRange:"1D",exchange:"US",showChart:true,
+      showSymbolLogo:true,showFloatingTooltip:true,width:"100%",height:"100%",isTransparent:true
+    }));
+    tvLoaded.movers=true;
+  }
+}
+
+// CoinGecko detail
+async function loadCrypto(){
+  $('cryptoBtn').disabled=true;$('cryptoBtn').innerHTML='<span class="loading-spin"></span>Loading...';
+  try{
+    const r=await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h,7d');
+    if(!r.ok)throw new Error('CoinGecko failed');
+    const coins=await r.json();
+    $('cryptoGrid').innerHTML=coins.slice(0,12).map(c=>{
+      const chg24=c.price_change_percentage_24h||0;
+      return `<div class="crypto-card">
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:4px">
+          <img src="${c.image}" width="20" height="20" style="border-radius:50%" onerror="this.style.display='none'">
+          <span class="cc-sym">${c.symbol.toUpperCase()}</span>
+        </div>
+        <div class="cc-name">${c.name}</div>
+        <div class="cc-price" style="color:${chg24>=0?'var(--green)':'var(--red)'}">${c.current_price>=1?'$'+c.current_price.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}):'$'+c.current_price.toFixed(6)}</div>
+        <div class="cc-chg ${chg24>=0?'up':'dn'}">${chg24>=0?'▲':'▼'} ${Math.abs(chg24).toFixed(2)}% 24h</div>
+        <div class="cc-mcap">${fmtN(c.market_cap)}</div>
+      </div>`;
+    }).join('');
+    $('cryptoTable').innerHTML=coins.map((c,i)=>{
+      const chg24=c.price_change_percentage_24h||0,chg7=c.price_change_percentage_7d_in_currency||0;
+      const sig=chg24>5?'<span class="bdg bdg-g">🚀 Pumping</span>':chg24>2?'<span class="bdg bdg-b">📈 Bullish</span>':chg24>0?'<span class="bdg bdg-g" style="opacity:.7">↑ Slight up</span>':chg24<-5?'<span class="bdg bdg-r">💀 Dumping</span>':chg24<-2?'<span class="bdg bdg-a">⚠ Weak</span>':'<span class="bdg">↓ Slight dn</span>';
+      const athPct=c.ath?((c.current_price/c.ath-1)*100).toFixed(1):'—';
+      return `<tr>
+        <td style="color:var(--text3);font-family:var(--font-m)">#${i+1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <img src="${c.image}" width="16" height="16" style="border-radius:50%" onerror="this.style.display='none'">
+            <span style="font-family:var(--font-m);font-weight:600">${c.symbol.toUpperCase()}</span>
+            <span style="font-size:9px;color:var(--text4)">${c.name}</span>
+          </div>
+        </td>
+        <td style="font-family:var(--font-m);font-weight:500">${c.current_price>=1?'$'+c.current_price.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}):'$'+c.current_price.toFixed(6)}</td>
+        <td class="${chg24>=0?'up':'dn'}" style="font-family:var(--font-m);font-weight:500">${chg24>=0?'+':''}${chg24.toFixed(2)}%</td>
+        <td class="${chg7>=0?'up':'dn'}" style="font-family:var(--font-m)">${chg7>=0?'+':''}${chg7.toFixed(2)}%</td>
+        <td style="font-family:var(--font-m);color:var(--text3)">${fmtN(c.market_cap)}</td>
+        <td style="font-family:var(--font-m);color:var(--text3)">${fmtN(c.total_volume)}</td>
+        <td style="font-family:var(--font-m);color:var(--text4);font-size:10px">${c.ath?'$'+c.ath.toLocaleString():' —'} <span style="color:${athPct<0?'var(--red)':'var(--green)'}">(${athPct}%)</span></td>
+        <td>${sig}</td>
+      </tr>`;
+    }).join('');
+    $('cryptoUpd').textContent='Updated '+now()+' · '+coins.length+' coins loaded';
+  }catch(e){
+    $('cryptoGrid').innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2rem">
+      <div style="color:var(--red);font-size:13px;margin-bottom:.75rem">⚠ Could not connect to CoinGecko</div>
+      <div style="color:var(--text3);font-size:11px;line-height:1.7">This usually means the file is being opened from a network with restrictions.<br>
+      Try: <strong>1)</strong> Open in Chrome or Firefox directly &nbsp; <strong>2)</strong> Check your internet connection &nbsp; <strong>3)</strong> Try again in a moment</div>
+    </div>`;
+    $('cryptoTable').innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:1rem">No data — see error above</td></tr>';
+  }
+  $('cryptoBtn').disabled=false;$('cryptoBtn').textContent='↺ Refresh Crypto';
+}
+
+// ═══════════════════ CHART OPTIONS ═══════════════════
+function cO(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const tickColor=isDark?'#64748b':'#64748b';
+  const gridColor=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+  const tooltipBg=isDark?'#0d1625':'#ffffff';
+  const tooltipBorder=isDark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.1)';
+  const tooltipTitle=isDark?'#f1f5f9':'#0f172a';
+  const tooltipBody=isDark?'#cbd5e1':'#334155';
+  return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:tooltipBg,titleColor:tooltipTitle,bodyColor:tooltipBody,borderColor:tooltipBorder,borderWidth:1,titleFont:{family:'IBM Plex Sans',size:11},bodyFont:{family:'IBM Plex Mono',size:11},callbacks:{label:ctx=>`  ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}`}}},scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},y:{ticks:{color:tickColor,font:{size:10,family:'IBM Plex Mono'},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'k':'$'+v},grid:{color:gridColor}}}}}
+
+// ═══════════════════ LOOKUP LINKS ═══════════════════
+function openTTM(e){
+  e.preventDefault();
+  const sym=$('tickSym')?.value?.trim()?.toUpperCase()||'MAGY';
+  window.open(`https://stockanalysis.com/etf/${sym}/dividend/`,'_blank');
+}
+
+function openPrice(e){
+  e.preventDefault();
+  const sym=$('tickSym')?.value?.trim()?.toUpperCase()||'MAGY';
+  window.open(`https://www.google.com/finance/quote/${sym}:NYSEARCA`,'_blank');
+}
+
+// ═══════════════════ AUTO-FETCH ON LOAD ═══════════════════
+async function autoFetchDefaults(){
+  // Silently try to fetch live MAGY price on page load
+  try{
+    const r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/MAGY?interval=1d&range=1d');
+    if(r.ok){
+      const d=await r.json();
+      const m=d?.chart?.result?.[0]?.meta;
+      if(m&&m.regularMarketPrice){
+        const livePrice=m.regularMarketPrice;
+        $('iPr').value=livePrice.toFixed(2);
+        $('iPrL').textContent='$'+livePrice.toFixed(2);
+        $('tiPrice').textContent='$'+livePrice.toFixed(2);
+        $('tiName').textContent=m.longName||m.shortName||'MAGY';
+        if(m.fiftyTwoWeekHigh) $('ti52H').textContent='$'+m.fiftyTwoWeekHigh.toFixed(2);
+        if(m.fiftyTwoWeekLow) $('ti52L').textContent='$'+m.fiftyTwoWeekLow.toFixed(2);
+        if(m.marketCap) $('tiCap').textContent=fmtN(m.marketCap);
+        const chg=m.regularMarketChange||0;
+        $('tiChg').textContent=(chg>=0?'+':'')+chg.toFixed(2);
+        $('tiChg').style.color=chg>=0?'var(--green)':'var(--red)';
+        // Update cached known data
+        if(KD.MAGY) KD.MAGY.price=livePrice;
+        ci(); // recalculate with live price
+        console.log('✅ Rosalie: Live MAGY price loaded: $'+livePrice.toFixed(2));
+      }
+    }
+  }catch(e){
+    console.log('ℹ Rosalie: Yahoo Finance unavailable — using cached defaults. This is normal in some browsers.');
+  }
+}
+
+// ═══════════════════ INIT ═══════════════════
+function initR(){[['iY','--green'],['iYr','--green'],['iDr','--green'],['mR','--blue'],['mT','--blue'],['hR','--purple'],['hYr','--purple'],['hIn','--red']].forEach(([id,c])=>{const el=$(id);if(el)ur(el,c)})}
+initR();ci();
+// Auto-fetch live price after page loads
+setTimeout(autoFetchDefaults, 500);
+</script>
+</body>
+</html>
