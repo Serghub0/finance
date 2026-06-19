@@ -940,8 +940,7 @@ const CTYPES={
     rateLbl:'Distribution yield (%)',rateMax:80,rateDef:37,
     taxDef:'0.24',taxOpts:[['0','0% — Roth IRA (tax-free)'],['0.22','22% ordinary income'],['0.24','24% ordinary income'],['0.32','32% ordinary income']],
     nameDef:'Income ETF',note:'Income ETF: weekly/monthly distributions from option premiums. Capital fluctuates with underlying stocks. Yield changes with market volatility.',
-    extra:`<div class="fl"><div class="fll">Share price ($)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="cPr_S_" value="43.00" step="0.01" oninput="cmp()"></div></div>
-      <div class="fl"><div class="fll">Price drift/yr (%)</div><div class="iw"><input type="number" id="cDrift_S_" value="0" min="-30" max="30" step="1" oninput="cmp()"></div></div>
+    extra:`<div class="fl"><div class="fll">Price drift/yr <span class="flv" id="cDrLblS_">0%</span></div><div class="rr"><input type="range" id="cDriftS_" min="-50" max="50" step="1" value="0" oninput="updateCmpSliderLabels('S_');cmp()"><span class="rv" id="cDrRvS_">0%</span></div></div>
       <div class="fl"><div class="fll">Strategy</div><div class="tg"><div class="tb on" onclick="setCStrat('S_',1,this)">DRIP 100%</div><div class="tb" onclick="setCStrat('S_',0.5,this)">Hybrid 50%</div><div class="tb" onclick="setCStrat('S_',0,this)">Cash Out</div></div></div>`,
     mathType:'income_etf'
   },
@@ -949,8 +948,8 @@ const CTYPES={
     label:'Stock / ETF growth',
     rateLbl:'Expected annual growth (%)',rateMax:50,rateDef:10,
     taxDef:'0.15',taxOpts:[['0','0% — Roth/IRA (tax-free)'],['0.15','15% long-term capital gains'],['0.20','20% long-term capital gains'],['0.24','24% ordinary (short-term)']],
-    nameDef:'S&P 500 ETF',note:'Stock/ETF: price appreciation is the primary return. Small dividend yield possible. Long-term capital gains rate applies if held 1yr+. No guaranteed income.',
-    extra:`<div class="fl"><div class="fll">Dividend yield (%)</div><div class="iw"><input type="number" id="cDiv_S_" value="1.5" min="0" max="15" step="0.1" oninput="cmp()"></div></div>`,
+    nameDef:'S&P 500 ETF',note:'Stock/ETF: set the annual return slider to your expected total return (appreciation + dividends combined). Long-term S&P 500 average is ~10%/yr.',
+    extra:'',
     mathType:'stock'
   },
   crypto:{
@@ -964,16 +963,16 @@ const CTYPES={
     label:'Real Estate (equity)',
     rateLbl:'Annual appreciation (%)',rateMax:20,rateDef:5,
     taxDef:'0.15',taxOpts:[['0','0% — 1031 exchange'],['0.15','15% long-term capital gains'],['0.24','24% ordinary income (rental)']],
-    nameDef:'Real Estate',note:'Real Estate: enter net equity return after mortgage, insurance, maintenance, vacancy, and management fees. Factor in property appreciation separately.',
-    extra:`<div class="fl"><div class="fll">Net rental yield (%)</div><div class="iw"><input type="number" id="cRent_S_" value="4" min="0" max="20" step="0.5" oninput="cmp()"></div></div>`,
+    nameDef:'Real Estate',note:'Real Estate: set the annual return slider to your total net return (appreciation + rental income - expenses combined). Average US real estate is 5-8%/yr net.',
+    extra:'',
     mathType:'realestate'
   },
   '401k':{
     label:'401(k) / IRA',
     rateLbl:'Annual return (%)',rateMax:20,rateDef:8,
     taxDef:'0',taxOpts:[['0','0% — tax-deferred (pay later)'],['0.22','22% — Roth (already taxed)'],['0.24','24% — Roth (already taxed)']],
-    nameDef:'401(k)',note:'401(k)/IRA: tax-deferred compound growth. No tax on gains until withdrawal. Employer match is free money — factor it into monthly contribution.',
-    extra:`<div class="fl"><div class="fll">Employer match ($/mo)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="cMatch_S_" value="0" step="50" oninput="cmp()"></div></div>`,
+    nameDef:'401(k)',note:'401(k)/IRA: set the annual return slider to your expected growth rate. Include employer match in your monthly contribution amount. Tax-deferred growth — no tax until withdrawal.',
+    extra:'',
     mathType:'compound_match'
   },
   other:{
@@ -986,9 +985,9 @@ const CTYPES={
 };
 
 let cStrats={A:1,B:1};
-function setCStrat(side,val,btn){
-  const s=side.replace('S_','');
-  cStrats[s]=val;
+function setCStrat(sideRaw,val,btn){
+  const s=sideRaw.replace(/[^AB]/g,'');
+  if(s) cStrats[s]=val;
   btn.parentElement.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   cmp();
@@ -1024,118 +1023,163 @@ function initCmpRanges(){
   ['A','B'].forEach(s=>{
     const el=$('cR'+s);
     if(el) ur(el, s==='A'?'--amber':'--cyan');
+    const dr=document.getElementById('cDrift'+s);
+    if(dr) ur(dr, s==='A'?'--amber':'--cyan');
   });
 }
 
 // Type-specific math engines
-function runCmpModel(side,yrs){
-  const type=$('cType'+side)?.value||'hysa';
-  const cap=parseFloat($('cCap'+side)?.value)||10000;
-  const rate=parseFloat($('cR'+side)?.value)/100||0.04;
-  const addM=parseFloat($('cAdd'+side)?.value)||0;
-  const tax=parseFloat($('cTax'+side)?.value)||0;
-  const mt=CTYPES[type]?.mathType||'compound';
-
+function runCmpCalc(inp,yrs){
+  const {mt,cap,rate,addM,tax}=inp;
   const rows=[],bVals=[cap];
-  let bal=cap,tC=cap;
 
-  for(let y=1;y<=yrs;y++){
-    let yReturn=0;
+  // INCOME ETF: use the EXACT same runIM function from Income ETF tab
+  if(mt==='income_etf'){
+    const m=runIM(cap,inp.price,rate,inp.drift,inp.strat,tax,yrs,addM,52);
+    // Convert runIM output format to compare format
+    const cRows=m.rows.map(r=>({y:r.y,bal:r.pv+r.tc,mo:r.mo,tC:r.ti}));
+    const cBVals=[cap,...m.rows.map(r=>Math.round(r.pv+r.tc))];
+    return{rows:cRows,bVals:cBVals};
+  }
 
-    if(mt==='compound'){
-      // HYSA / Other: simple daily compound interest
+  // STOCK: pure growth using main rate
+  if(mt==='stock'){
+    let bal=cap, tC=cap;
+    for(let y=1;y<=yrs;y++){
       for(let m=0;m<12;m++){
-        for(let d=0;d<30;d++){const di=bal*(rate/365);yReturn+=di;bal+=di}
+        bal*=Math.pow(1+rate,1/12);
         if(addM>0){bal+=addM;tC+=addM}
       }
-      yReturn*=(1-tax);
-
-    } else if(mt==='income_etf'){
-      // Income ETF: yield on NAV, price drift, DRIP
-      const price0=parseFloat($('cPr'+side)?.value)||43.00;
-      const drift=parseFloat($('cDrift'+side)?.value)/100||0;
-      const strat=cStrats[side]??1;
-      let shares=cap/price0, price=price0*Math.pow(1+drift,y-1);
-      // recalc shares from scratch each year
-      shares=cap/price0;
-      let tempBal=cap,tempTC=cap,tempCash=0;
-      for(let yr=1;yr<=y;yr++){
-        let p=price0*Math.pow(1+drift,yr-1);
-        for(let m=0;m<12;m++){
-          p*=Math.pow(1+drift,1/12);
-          const wDiv=p*rate/52;
-          for(let w=0;w<4;w++){
-            const div=wDiv*shares;
-            yReturn+=yr===y?div:0;
-            const rv=div*strat,cash=div*(1-strat)*(1-tax);
-            tempCash+=cash;
-            if(rv>0) shares+=rv/p;
-          }
-          if(addM>0&&yr<=y){shares+=addM/p;tempTC+=addM}
-        }
-      }
-      bal=shares*price0*Math.pow(1+drift,y)+tempCash;
-      tC=cap+addM*12*y;
       const mo=bal*rate/12*(1-tax);
       rows.push({y,bal,mo,tC});
       bVals.push(Math.round(bal));
-      continue; // skip the default push below
-
-    } else if(mt==='stock'){
-      // Stock: price appreciation + small dividend
-      const divYld=parseFloat($('cDiv'+side)?.value)/100||0.015;
-      for(let m=0;m<12;m++){
-        bal*=Math.pow(1+rate,1/12);
-        const divInc=bal*divYld/12;
-        yReturn+=divInc;
-        bal+=divInc;
-        if(addM>0){bal+=addM;tC+=addM}
-      }
-      yReturn*=(1-tax);
-
-    } else if(mt==='growth_only'){
-      // Crypto: pure appreciation, no income
-      for(let m=0;m<12;m++){
-        bal*=Math.pow(1+rate,1/12);
-        if(addM>0){bal+=addM;tC+=addM}
-      }
-      yReturn=0; // no realized income
-
-    } else if(mt==='realestate'){
-      // Real estate: appreciation + net rental
-      const rentYld=parseFloat($('cRent'+side)?.value)/100||0.04;
-      for(let m=0;m<12;m++){
-        bal*=Math.pow(1+rate,1/12);
-        const rent=bal*rentYld/12*(1-tax);
-        yReturn+=rent;
-        bal+=rent;
-        if(addM>0){bal+=addM;tC+=addM}
-      }
-
-    } else if(mt==='compound_match'){
-      // 401k with employer match
-      const match=parseFloat($('cMatch'+side)?.value)||0;
-      for(let m=0;m<12;m++){
-        for(let d=0;d<30;d++){const di=bal*(rate/365);yReturn+=di;bal+=di}
-        if(addM>0){bal+=addM;tC+=addM}
-        if(match>0){bal+=match;tC+=match}
-      }
     }
+    return{rows,bVals};
+  }
 
-    const mo=mt==='growth_only'?0:bal*rate/12*(1-(mt==='compound'?tax:0));
+  // REAL ESTATE: growth using main rate as total return (appreciation + rental combined)
+  if(mt==='realestate'){
+    let bal=cap, tC=cap;
+    for(let y=1;y<=yrs;y++){
+      for(let m=0;m<12;m++){
+        bal*=Math.pow(1+rate,1/12);
+        if(addM>0){bal+=addM;tC+=addM}
+      }
+      const mo=bal*rate/12*(1-tax);
+      rows.push({y,bal,mo,tC});
+      bVals.push(Math.round(bal));
+    }
+    return{rows,bVals};
+  }
+
+  // 401K: compound growth using main rate
+  if(mt==='compound_match'){
+    let bal=cap, tC=cap;
+    for(let y=1;y<=yrs;y++){
+      for(let m=0;m<12;m++){
+        for(let d=0;d<30;d++){bal+=bal*(rate/365)}
+        if(addM>0){bal+=addM;tC+=addM}
+      }
+      const mo=bal*rate/12;
+      rows.push({y,bal,mo,tC});
+      bVals.push(Math.round(bal));
+    }
+    return{rows,bVals};
+  }
+
+  // CRYPTO: pure growth, zero income
+  if(mt==='growth_only'){
+    let bal=cap, tC=cap;
+    for(let y=1;y<=yrs;y++){
+      for(let m=0;m<12;m++){
+        bal*=Math.pow(1+rate,1/12);
+        if(addM>0){bal+=addM;tC+=addM}
+      }
+      rows.push({y,bal,mo:0,tC});
+      bVals.push(Math.round(bal));
+    }
+    return{rows,bVals};
+  }
+
+  // DEFAULT: compound (HYSA, CD, Other)
+  let bal=cap, tC=cap;
+  for(let y=1;y<=yrs;y++){
+    for(let m=0;m<12;m++){
+      for(let d=0;d<30;d++){bal+=bal*(rate/365)}
+      if(addM>0){bal+=addM;tC+=addM}
+    }
+    const mo=bal*rate/12*(1-tax);
     rows.push({y,bal,mo,tC});
     bVals.push(Math.round(bal));
   }
   return{rows,bVals};
 }
 
+function updateCmpSliderLabels(sideRaw){
+  const s=sideRaw.replace(/[^AB]/g,'');
+  if(!s) return;
+  try{
+    const dr=document.getElementById('cDrift'+s);
+    if(dr){
+      const dv=parseFloat(dr.value);
+      const v=(dv>=0?'+':'')+dv+'%';
+      const lbl=document.getElementById('cDrLbl'+s); if(lbl) lbl.textContent=v;
+      const rv=document.getElementById('cDrRv'+s); if(rv) rv.textContent=v;
+      ur(dr, s==='A'?'--amber':'--cyan');
+    }
+  }catch(e){}
+}
+
 function cmp(){
+ try{
   const yrs=parseInt($('cYr')?.value)||10;
   const infl=parseFloat($('cInf')?.value)/100||0.032;
   const nameA=$('cNameA')?.value||'A',nameB=$('cNameB')?.value||'B';
   const capA=parseFloat($('cCapA')?.value)||10000,capB=parseFloat($('cCapB')?.value)||10000;
 
-  const mA=runCmpModel('A',yrs),mB=runCmpModel('B',yrs);
+  // Gather ALL inputs for each side explicitly
+  function getInputs(side){
+    const type=$('cType'+side)?.value||'hysa';
+    const mt=CTYPES[type]?.mathType||'compound';
+    const prEl=document.getElementById('cPr'+side);
+    const drEl=document.getElementById('cDrift'+side);
+    const dvEl=document.getElementById('cDiv'+side);
+    const rtEl=document.getElementById('cRent'+side);
+    const mtEl=document.getElementById('cMatch'+side);
+    const prRaw=prEl ? parseFloat(prEl.value) : NaN;
+    const drRaw=drEl ? parseFloat(drEl.value) : NaN;
+    return {
+      type, mt,
+      cap: parseFloat($('cCap'+side)?.value)||10000,
+      rate: (parseFloat($('cR'+side)?.value)||5)/100,
+      addM: parseFloat($('cAdd'+side)?.value)||0,
+      tax: parseFloat($('cTax'+side)?.value)||0,
+      price: isNaN(prRaw) ? 43 : prRaw,
+      drift: isNaN(drRaw) ? 0 : drRaw/100,
+      strat: cStrats[side]??1,
+      divYld: dvEl ? (parseFloat(dvEl.value)||1.5)/100 : 0.015,
+      rentYld: rtEl ? (parseFloat(rtEl.value)||4)/100 : 0.04,
+      match: mtEl ? parseFloat(mtEl.value)||0 : 0,
+    };
+  }
+
+  const inA=getInputs('A'), inB=getInputs('B');
+
+  // Update all slider labels safely — never let a label update break the math
+  ['A','B'].forEach(s=>{
+    try{
+      const dr=document.getElementById('cDrift'+s);
+      if(dr){
+        const dv=parseFloat(dr.value);
+        const v=(dv>=0?'+':'')+dv+'%';
+        const lbl=document.getElementById('cDrLbl'+s); if(lbl) lbl.textContent=v;
+        const rv=document.getElementById('cDrRv'+s); if(rv) rv.textContent=v;
+        ur(dr, s==='A'?'--amber':'--cyan');
+      }
+    }catch(e){}
+  });
+
+  const mA=runCmpCalc(inA,yrs), mB=runCmpCalc(inB,yrs);
   if(!mA.rows.length||!mB.rows.length) return;
 
   const lastA=mA.rows[mA.rows.length-1],lastB=mB.rows[mB.rows.length-1];
@@ -1153,10 +1197,14 @@ function cmp(){
 
   const labels=['Now',...mA.rows.map(r=>'Yr '+r.y)];
   if(cCI)cCI.destroy();
+  const isDk=document.documentElement.getAttribute('data-theme')==='dark';
+  const amberC=isDk?'#fbbf24':'#d97706';
+  const cyanC=isDk?'#22d3ee':'#0891b2';
+  const redC=isDk?'#f87171':'#dc2626';
   cCI=new Chart($('cChart').getContext('2d'),{type:'line',data:{labels,datasets:[
-    {label:nameA,data:mA.bVals,borderColor:'var(--amber)',backgroundColor:'rgba(217,119,6,0.07)',fill:true,tension:.4,pointRadius:3},
-    {label:nameB,data:mB.bVals,borderColor:'var(--cyan)',backgroundColor:'rgba(8,145,178,0.07)',fill:true,tension:.4,pointRadius:3},
-    {label:'Inflation',data:[capA,...mA.rows.map((_,i)=>Math.round(capA*Math.pow(1+infl,i+1)))],borderColor:'var(--red)',backgroundColor:'transparent',tension:.4,pointRadius:0,borderDash:[3,3]},
+    {label:nameA,data:mA.bVals,borderColor:amberC,backgroundColor:isDk?'rgba(251,191,36,0.07)':'rgba(217,119,6,0.07)',fill:true,tension:.4,pointRadius:3},
+    {label:nameB,data:mB.bVals,borderColor:cyanC,backgroundColor:isDk?'rgba(34,211,238,0.07)':'rgba(8,145,178,0.07)',fill:true,tension:.4,pointRadius:3},
+    {label:'Inflation',data:[capA,...mA.rows.map((_,i)=>Math.round(capA*Math.pow(1+infl,i+1)))],borderColor:redC,backgroundColor:'transparent',tension:.4,pointRadius:0,borderDash:[3,3]},
   ]},options:cO()});
 
   const cx=mA.rows.findIndex((r,i)=>mB.rows[i]&&mB.rows[i].bal>r.bal);
@@ -1175,6 +1223,11 @@ function cmp(){
   $('cTb').innerHTML=mA.rows.map((rA,i)=>{const rB=mB.rows[i];const lead=rB.bal>rA.bal?`<span class="bdg bdg-a" style="background:var(--cyan-l);color:var(--cyan)">${nameB}</span>`:`<span class="bdg bdg-a">${nameA}</span>`;
     return `<tr><td style="color:var(--text3)">Yr ${rA.y}</td><td style="color:var(--amber);font-family:var(--font-m)">${fmtD(rA.bal,0)}</td><td style="color:var(--amber);font-family:var(--font-m)">${fmtD(rA.mo,0)}/mo</td><td style="color:var(--amber);font-family:var(--font-m)">${fmtD(rA.bal-capA,0)}</td><td style="color:var(--cyan);font-family:var(--font-m)">${fmtD(rB.bal,0)}</td><td style="color:var(--cyan);font-family:var(--font-m)">${fmtD(rB.mo,0)}/mo</td><td style="color:var(--cyan);font-family:var(--font-m)">${fmtD(rB.bal-capB,0)}</td><td style="font-family:var(--font-m);color:var(--purple)">${fmtD(Math.abs(rB.bal-rA.bal),0)}</td><td>${lead}</td></tr>`;
   }).join('');
+ }catch(e){
+  console.error('cmp() error:',e);
+  const el=$('cStats');
+  if(el) el.innerHTML=`<div class="stat sr" style="grid-column:1/-1"><div class="sl">DEBUG ERROR</div><div class="sv" style="font-size:12px;word-break:break-all">${e.message}</div><div class="ss">${e.stack?.split('\n')[1]||''}</div></div>`;
+ }
 }
 
 
