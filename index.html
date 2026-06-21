@@ -1100,7 +1100,141 @@ function adj(id,v){const el=$(id);if(el){el.value=Math.max(0,parseFloat(el.value
 function adjR(id,v){const el=$(id);if(el){el.value=Math.max(parseFloat(el.min||0),Math.min(parseFloat(el.max||100),parseFloat(el.value||0)+v));cm()}}
 function cm(){const price=parseFloat($('mPrice')?.value)||315000,dpPct=(parseFloat($('mDp')?.value)||20)/100,rate=parseFloat($('mR2')?.value)||5,close=parseFloat($('mClose')?.value)||1000,rent=parseFloat($('mRent')?.value)||2500,taxYr=parseFloat($('mTax')?.value)||3168,insYr=parseFloat($('mIns')?.value)||1140,util=parseFloat($('mUtil')?.value)||50,misc=parseFloat($('mMisc')?.value)||0,capPct=(parseFloat($('mCap')?.value)||8)/100,vacPct=(parseFloat($('mVac')?.value)||5)/100,appPct=(parseFloat($('mApp')?.value)||3)/100;const dp=price*dpPct,loan=price-dp,cashIn=dp+close,mr=rate/100/12;const mort=loan>0&&mr>0?loan*mr/(1-Math.pow(1+mr,-mTerm*12)):0;const taxMo=taxYr/12,insMo=insYr/12,upgrade=rent*capPct,vacancy=rent*vacPct,effRent=rent*(1-vacPct),totalExp=mort+taxMo+insMo+util+misc+upgrade,net=effRent-totalExp,annCF=net*12,cocROI=cashIn>0?(annCF/cashIn*100):0,noi=rent*12-taxYr-insYr-util*12-misc*12-upgrade*12-vacancy*12,capRate=price>0?(noi/price*100):0;try{$('mDpL').textContent=Math.round(dpPct*100)+'%';$('mDpAmt').textContent='$'+Math.round(dp).toLocaleString();$('mRL2').textContent=rate.toFixed(2)+'%';ur($('mDp'),'--blue');ur($('mR2'),'--blue');ur($('mCap'),'--green');ur($('mVac'),'--red');ur($('mApp'),'--blue');$('mMortAmt').textContent='$'+Math.round(mort).toLocaleString()+'/mo';$('mLoanInfo').textContent='$'+Math.round(loan).toLocaleString()+' '+mTerm+'yr @ '+rate.toFixed(2)+'%';$('mTaxMo').textContent='→$'+Math.round(taxMo)+'/mo';$('mInsMo').textContent='→$'+Math.round(insMo)+'/mo';$('mCapL').textContent=Math.round(capPct*100)+'%';$('mCapD').textContent=Math.round(capPct*100)+'%';$('mCapAmt').textContent='$'+Math.round(upgrade)+'/mo';$('mVacL').textContent=Math.round(vacPct*100)+'%';$('mVacD').textContent=Math.round(vacPct*100)+'%';$('mVacAmt').textContent='$'+Math.round(vacancy)+'/mo';$('mAppL').textContent=(appPct*100).toFixed(1)+'%';$('mAppD').textContent=(appPct*100).toFixed(1)+'%'}catch(e){}$('mStats').innerHTML=`<div class="stat ${cocROI>0?'sg':'sr'}"><div class="sl">Cash on Cash ROI</div><div class="sv">${cocROI.toFixed(1)}%</div></div><div class="stat ${net>0?'sg':'sr'}"><div class="sl">Net/mo</div><div class="sv">${net>=0?'':'-'}$${Math.abs(Math.round(net)).toLocaleString()}</div></div><div class="stat sa"><div class="sl">Cap Rate</div><div class="sv">${capRate.toFixed(1)}%</div></div><div class="stat sb"><div class="sl">Cash in</div><div class="sv">$${Math.round(cashIn).toLocaleString()}</div></div><div class="stat sp"><div class="sl">Mortgage</div><div class="sv">$${Math.round(mort).toLocaleString()}</div></div><div class="stat sc"><div class="sl">Annual Cash Flow</div><div class="sv">${annCF>=0?'':'-'}$${Math.abs(Math.round(annCF)).toLocaleString()}</div></div>`;const items=[['+Rent',effRent,'var(--green)'],['-Mortgage',-mort,'var(--red)'],['-Tax',-taxMo,'var(--red)'],['-Insurance',-insMo,'var(--red)'],['-Utilities',-util,'var(--red)'],['-Misc',-misc,'var(--text3)'],['-Upgrade',-upgrade,'var(--amber)']];$('mSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:3px">${items.map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);color:${c}">${v>=0?'+':'-'}$${Math.abs(Math.round(v)).toLocaleString()}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;padding:7px 0;font-size:14px;font-weight:700;border-top:2px solid var(--border)"><span>NET</span><span style="font-family:var(--font-m);color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':'-'}$${Math.abs(Math.round(net)).toLocaleString()}/mo</span></div></div><div class="abox ${cocROI>6?'abox-g':cocROI>0?'abox-b':'abox-r'}" style="margin-top:.75rem;font-size:11px">${cocROI>6?'<strong>Strong</strong> — '+cocROI.toFixed(1)+'% CoC.':cocROI>0?'<strong>Marginal</strong> — '+cocROI.toFixed(1)+'%.':'<strong>Bad deal</strong> — MAGY on $'+Math.round(cashIn/1000)+'K → ~$'+Math.round(cashIn*0.37/12)+'/mo.'}</div>`;const rows=[],eqV=[Math.round(dp)],cfV=[0],pvV=[price];let bal2=loan,cumCF=0,pv=price;for(let y=1;y<=mTerm;y++){for(let m=0;m<12&&bal2>0;m++){const i=bal2*mr,pr=Math.min(mort-i,bal2);bal2=Math.max(0,bal2-pr)}pv*=(1+appPct);cumCF+=annCF;const eq=pv-bal2,tr=eq-dp+cumCF;rows.push({y,pv,eq,net,annCF,cumCF,tr,roi:cashIn>0?(tr/cashIn*100):0});eqV.push(Math.round(eq));cfV.push(Math.round(cumCF));pvV.push(Math.round(pv))}const isDk2=document.documentElement.getAttribute('data-theme')==='dark';if(mCI)mCI.destroy();mCI=new Chart($('mChart').getContext('2d'),{type:'line',data:{labels:['Now',...rows.map(r=>'Yr '+r.y)],datasets:[{label:'Equity',data:eqV,borderColor:isDk2?'#4ade80':'#16a34a',backgroundColor:isDk2?'rgba(74,222,128,.08)':'rgba(22,163,74,.06)',fill:true,tension:.4,pointRadius:3},{label:'CF',data:cfV,borderColor:isDk2?'#fbbf24':'#d97706',backgroundColor:'transparent',tension:.4,pointRadius:2,borderDash:[5,3]},{label:'Value',data:pvV,borderColor:isDk2?'#60a5fa':'#1d4ed8',backgroundColor:'transparent',tension:.4,pointRadius:0,borderDash:[2,4]}]},options:cO()});$('mTb').innerHTML=rows.map(r=>`<tr><td style="color:var(--text3)">Yr ${r.y}</td><td style="font-family:var(--font-m)">$${Math.round(r.pv).toLocaleString()}</td><td style="color:var(--green);font-family:var(--font-m)">$${Math.round(r.eq).toLocaleString()}</td><td style="color:${r.net>=0?'var(--green)':'var(--red)'};font-family:var(--font-m)">${r.net>=0?'+':'-'}$${Math.abs(Math.round(r.net)).toLocaleString()}/mo</td><td style="font-family:var(--font-m)">${r.annCF>=0?'+':'-'}$${Math.abs(Math.round(r.annCF)).toLocaleString()}</td><td style="font-family:var(--font-m)">${r.cumCF>=0?'+':'-'}$${Math.abs(Math.round(r.cumCF)).toLocaleString()}</td><td style="color:var(--purple);font-family:var(--font-m)">$${Math.round(r.tr).toLocaleString()}</td><td style="color:var(--amber);font-family:var(--font-m)">${r.roi.toFixed(1)}%</td></tr>`).join('')}
 let bCI=null;
-function cbuy(){const loanType=$('bType')?.value||'housing';const tl={housing:'Home',car:'Vehicle',personal:'Loan',cards:'Balance'};const typeLbl=tl[loanType]||'Loan';const income=parseFloat($('bIncome')?.value)||85000,debts=parseFloat($('bDebts')?.value)||500,down=parseFloat($('bDown')?.value)||60000,score=parseInt($('bSc')?.value)||720;const userRate=parseFloat($('bRt')?.value)||6.5;const termYrs=parseInt($('bTm')?.value)||30;const txRate=(loanType==='housing')?(parseFloat($('bTx')?.value)||1.1)/100:0;const ins=(loanType==='housing'||loanType==='car')?parseFloat($('bIns')?.value)||1800:0;const hoa=(loanType==='housing')?parseFloat($('bHoa')?.value)||0:0;try{$('bScL').textContent=score;$('bScD').textContent=score;$('bRtL').textContent=userRate.toFixed(2)+'%';$('bRtD').textContent=userRate.toFixed(2)+'%';$('bTmL').textContent=termYrs+' years';$('bTmD').textContent=termYrs+'yr';$('bTxL').textContent=(txRate*100).toFixed(1)+'%';$('bTxD').textContent=(txRate*100).toFixed(1)+'%';ur($('bSc'),'--purple');ur($('bRt'),'--blue');ur($('bTm'),'--blue');ur($('bTx'),'--amber')}catch(e){}let rAdj=0,sLbl='',sClr='';if(score>=760){rAdj=-0.5;sLbl='Excellent';sClr='var(--green)'}else if(score>=700){rAdj=0;sLbl='Good';sClr='var(--green)'}else if(score>=680){rAdj=0.25;sLbl='Fair +0.25%';sClr='var(--amber)'}else if(score>=660){rAdj=0.5;sLbl='Below avg +0.5%';sClr='var(--amber)'}else if(score>=620){rAdj=1.0;sLbl='Poor +1%';sClr='var(--red)'}else{rAdj=2.5;sLbl='Very poor +2.5%';sClr='var(--red)'}const effRate=(userRate+rAdj)/100,mr=effRate/12,moInc=income/12;const maxFront=moInc*0.28,maxBack=moInc*0.36-debts,maxH=Math.min(maxFront,maxBack);let maxPmt=loanType==='housing'?maxH-ins/12-hoa:maxH;const estP0=maxPmt>0&&mr>0?(maxPmt*0.85*((1-Math.pow(1+mr,-termYrs*12))/mr)+down):down;const actTx=estP0*txRate/12;maxPmt=loanType==='housing'?maxH-ins/12-hoa-actTx:maxH;const maxLoan=maxPmt>0&&mr>0?(maxPmt*((1-Math.pow(1+mr,-termYrs*12))/mr)):0;const maxPrice=Math.max(0,maxLoan+down);const dpPct=maxPrice>0?(down/maxPrice*100):0;const estMo=maxLoan>0&&mr>0?maxLoan*mr/(1-Math.pow(1+mr,-termYrs*12)):0;const totalMo=loanType==='housing'?estMo+maxPrice*txRate/12+ins/12+hoa:estMo+(ins>0?ins/12:0);$('bCredit').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">${[['Score',score,sClr],['Rating',sLbl,sClr],['Base rate',userRate+'%','var(--text)'],['Score adjustment',(rAdj>=0?'+':'')+rAdj+'%',rAdj>0?'var(--red)':'var(--green)'],['Effective rate',(userRate+rAdj).toFixed(2)+'%',rAdj<=0?'var(--green)':'var(--red)']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div>`;$('bStats').innerHTML=`<div class="stat sg"><div class="sl">Max ${typeLbl} Price</div><div class="sv">$${Math.round(maxPrice).toLocaleString()}</div></div><div class="stat sb"><div class="sl">Max Loan Amount</div><div class="sv">$${Math.round(maxLoan).toLocaleString()}</div><div class="ss">${termYrs}yr @ ${(userRate+rAdj).toFixed(2)}%</div></div><div class="stat sp"><div class="sl">${typeLbl} Payment</div><div class="sv">$${Math.round(estMo).toLocaleString()}/mo</div></div><div class="stat sa"><div class="sl">Total Monthly</div><div class="sv">$${Math.round(totalMo).toLocaleString()}/mo</div><div class="ss">${(totalMo/moInc*100).toFixed(1)}% of income</div></div><div class="stat sc"><div class="sl">Down Payment</div><div class="sv">${dpPct.toFixed(1)}%</div><div class="ss">$${down.toLocaleString()}</div></div><div class="stat ${totalMo/moInc<0.28?'sg':'sr'}"><div class="sl">Debt to Income</div><div class="sv">${(totalMo/moInc*100).toFixed(1)}%</div><div class="ss">${totalMo/moInc<0.28?'under 28%':'over 28%'}</div></div>`;const brkItems=loanType==='housing'?[['Monthly income','$'+Math.round(moInc).toLocaleString(),'var(--text)'],['Max housing (28%)','$'+Math.round(maxFront).toLocaleString(),'var(--blue)'],['Max with debts (36%)','$'+Math.round(maxBack).toLocaleString(),'var(--blue)'],[typeLbl+' payment','$'+Math.round(estMo).toLocaleString(),'var(--text)'],['Property tax','$'+Math.round(maxPrice*txRate/12).toLocaleString()+'/mo','var(--text)'],['Insurance','$'+Math.round(ins/12).toLocaleString()+'/mo','var(--text)'],['HOA','$'+hoa+'/mo','var(--text)'],['Total','$'+Math.round(totalMo).toLocaleString()+'/mo',totalMo/moInc<0.28?'var(--green)':'var(--red)']]:[['Monthly income','$'+Math.round(moInc).toLocaleString(),'var(--text)'],['Max payment (28%)','$'+Math.round(maxFront).toLocaleString(),'var(--blue)'],[typeLbl+' payment','$'+Math.round(estMo).toLocaleString(),'var(--text)'],['Total','$'+Math.round(totalMo).toLocaleString()+'/mo',totalMo/moInc<0.28?'var(--green)':'var(--red)']];$('bSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">${brkItems.map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div><div class="abox ${dpPct>=20?'abox-g':dpPct>=10?'abox-b':'abox-a'}" style="margin-top:.75rem;font-size:11px">${loanType==='housing'?(dpPct>=20?'<strong>20%+ down</strong> — No PMI.':dpPct>=10?'<strong>10-19%</strong> — PMI ~$'+Math.round(maxLoan*0.005/12)+'/mo.':'<strong>Under 10%</strong> — Higher PMI.'):'<strong>'+typeLbl+'</strong> — $'+Math.round(maxPrice).toLocaleString()+' max at $'+Math.round(estMo).toLocaleString()+'/mo for '+termYrs+' years.'}</div>`;const isDk3=document.documentElement.getAttribute('data-theme')==='dark';const scores=[850,800,760,720,700,680,660,620,580];const powers=scores.map(s=>{let ra=s>=760?-0.5:s>=700?0:s>=680?0.25:s>=660?0.5:s>=620?1.0:2.5;const er=(userRate+ra)/100/12;const mh2=Math.min(moInc*0.28,moInc*0.36-debts)-(loanType==='housing'?ins/12+hoa:0);const estP2=mh2>0&&er>0?(mh2*0.7*((1-Math.pow(1+er,-termYrs*12))/er)+down):down;const atx2=estP2*txRate/12;const mm2=mh2-(loanType==='housing'?atx2:0);const ml2=mm2>0&&er>0?(mm2*((1-Math.pow(1+er,-termYrs*12))/er)):0;return Math.max(0,Math.round(ml2+down))});if(bCI)bCI.destroy();bCI=new Chart($('bChart').getContext('2d'),{type:'bar',data:{labels:scores.map(String),datasets:[{label:'Max '+typeLbl,data:powers,backgroundColor:scores.map(s=>s===score?(isDk3?'#4ade80':'#16a34a'):(isDk3?'rgba(96,165,250,0.4)':'rgba(29,78,216,0.3)')),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:isDk3?'#64748b':'#64748b',font:{size:10}},grid:{display:false}},y:{ticks:{color:isDk3?'#64748b':'#64748b',font:{size:10,family:'IBM Plex Mono'},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'k':'$'+v},grid:{color:isDk3?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)'}}}}});}
+function cbuy(){
+ try{
+  const loanType=$('bType')?.value||'housing';
+  const tl={housing:'Home',car:'Vehicle',personal:'Loan',cards:'Balance'};
+  const typeLbl=tl[loanType]||'Loan';
+  const income=parseFloat($('bIncome')?.value)||85000;
+  const debts=parseFloat($('bDebts')?.value)||500;
+  const down=parseFloat($('bDown')?.value)||60000;
+  const score=parseInt($('bSc')?.value)||720;
+  const userRate=parseFloat($('bRt')?.value)||6.5;
+  const termYrs=parseInt($('bTm')?.value)||30;
+  const txRate=(loanType==='housing')?(parseFloat($('bTx')?.value)||1.1)/100:0;
+  const ins=(loanType==='housing'||loanType==='car')?parseFloat($('bIns')?.value)||1800:0;
+  const hoa=(loanType==='housing')?parseFloat($('bHoa')?.value)||0:0;
+  try{$('bScL').textContent=score;$('bScD').textContent=score;
+  $('bRtL').textContent=userRate.toFixed(2)+'%';$('bRtD').textContent=userRate.toFixed(2)+'%';
+  $('bTmL').textContent=termYrs+' years';$('bTmD').textContent=termYrs+'yr';
+  $('bTxL').textContent=(txRate*100).toFixed(1)+'%';$('bTxD').textContent=(txRate*100).toFixed(1)+'%';
+  ur($('bSc'),'--purple');ur($('bRt'),'--blue');ur($('bTm'),'--blue');ur($('bTx'),'--amber')}catch(e){}
+  let rAdj=0,sLbl='',sClr='';
+  if(score>=760){rAdj=-0.5;sLbl='Excellent';sClr='var(--green)'}
+  else if(score>=700){rAdj=0;sLbl='Good';sClr='var(--green)'}
+  else if(score>=680){rAdj=0.25;sLbl='Fair +0.25%';sClr='var(--amber)'}
+  else if(score>=660){rAdj=0.5;sLbl='Below avg +0.5%';sClr='var(--amber)'}
+  else if(score>=620){rAdj=1.0;sLbl='Poor +1%';sClr='var(--red)'}
+  else{rAdj=2.5;sLbl='Very poor +2.5%';sClr='var(--red)'}
+  const effRate=(userRate+rAdj)/100,mr=effRate/12,n=termYrs*12,moInc=income/12;
+  const dtiPct=loanType==='housing'?0.28:loanType==='car'?0.15:loanType==='personal'?0.10:0.05;
+  const maxAfford=moInc*dtiPct;
+  const fixedC=loanType==='housing'?ins/12+hoa:ins>0?ins/12:0;
+
+  // DTI-based max borrowing power (CHANGES with rate for ALL types)
+  let maxApproved=0;
+  if(mr>0){
+    const factor=(1-Math.pow(1+mr,-n))/mr;
+    let avail=Math.max(0,Math.min(maxAfford,moInc*0.36-debts)-fixedC);
+    maxApproved=avail*factor;
+    if(loanType==='housing'&&txRate>0){
+      const etx=(maxApproved+down)*txRate/12;
+      avail=Math.max(0,Math.min(maxAfford,moInc*0.36-debts)-fixedC-etx);
+      maxApproved=avail*factor;
+    }
+  }
+  const maxPrice=maxApproved+down;
+
+  // For non-housing: target purchase = income guideline
+  const priceMult=loanType==='car'?0.35:loanType==='personal'?0.20:loanType==='cards'?0.10:0;
+  const targetPrice=loanType==='housing'?maxPrice:Math.round(income*priceMult)+down;
+  const actualLoan=loanType==='housing'?maxApproved:Math.max(0,targetPrice-down);
+
+  // Payment (for housing = DTI-capped, for others = calculated from fixed loan)
+  let loanPmt=0;
+  if(loanType==='housing'){
+    loanPmt=Math.max(0,Math.min(maxAfford,moInc*0.36-debts)-fixedC-(loanType==='housing'?maxPrice*txRate/12:0));
+  }else{
+    loanPmt=actualLoan>0&&mr>0?actualLoan*mr/(1-Math.pow(1+mr,-n)):actualLoan>0?actualLoan/n:0;
+  }
+  const taxMo=loanType==='housing'?maxPrice*txRate/12:0;
+  const totalMo=loanPmt+fixedC+taxMo;
+  const dti=moInc>0?(totalMo/moInc*100):0;
+  const dpPct=targetPrice>0?(down/targetPrice*100):0;
+  const totalInt=Math.max(0,loanPmt*n-actualLoan);
+  const totalCost=loanPmt*n+down;
+
+  $('bCredit').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">${[
+    ['Score',score,sClr],['Rating',sLbl,sClr],
+    ['Base rate',userRate.toFixed(2)+'%','var(--text)'],
+    ['Score adjustment',(rAdj>=0?'+':'')+rAdj.toFixed(2)+'%',rAdj>0?'var(--red)':'var(--green)'],
+    ['Effective rate',(userRate+rAdj).toFixed(2)+'%',rAdj<=0?'var(--green)':'var(--red)']
+  ].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div>`;
+
+  const showPrice=loanType==='housing'?maxPrice:targetPrice;
+  $('bStats').innerHTML=`
+    <div class="stat sg"><div class="sl">${loanType==='housing'?'Max ':''} ${typeLbl} Price</div><div class="sv">$${Math.round(showPrice).toLocaleString()}</div></div>
+    <div class="stat sc"><div class="sl">Max Bank Approved</div><div class="sv">$${Math.round(maxApproved).toLocaleString()}</div><div class="ss">${termYrs}yr @ ${(userRate+rAdj).toFixed(2)}%</div></div>
+    <div class="stat sp"><div class="sl">${typeLbl} Payment</div><div class="sv">$${Math.round(loanPmt).toLocaleString()}/mo</div></div>
+    <div class="stat sr"><div class="sl">Total Interest</div><div class="sv">$${Math.round(totalInt).toLocaleString()}</div><div class="ss">over ${termYrs} years</div></div>
+    <div class="stat sa"><div class="sl">Total Cost</div><div class="sv">$${Math.round(totalCost).toLocaleString()}</div></div>
+    <div class="stat ${dti<dtiPct*100?'sg':dti<36?'sa':'sr'}"><div class="sl">Debt to Income</div><div class="sv">${dti.toFixed(1)}%</div><div class="ss">${dti<dtiPct*100?'within '+Math.round(dtiPct*100)+'% ✓':'over limit ✗'}</div></div>`;
+
+  const withinBudget=actualLoan<=maxApproved;
+  const brkItems=[
+    ['Monthly income','$'+Math.round(moInc).toLocaleString(),'var(--text)'],
+    ['Safe limit ('+Math.round(dtiPct*100)+'% DTI)','$'+Math.round(maxAfford).toLocaleString()+'/mo','var(--blue)'],
+    ['Max bank approved loan','$'+Math.round(maxApproved).toLocaleString(),withinBudget?'var(--green)':'var(--red)'],
+    loanType!=='housing'?['Your '+typeLbl.toLowerCase()+' price','$'+Math.round(targetPrice).toLocaleString(),'var(--text)']:null,
+    ['Loan amount','$'+Math.round(actualLoan).toLocaleString(),withinBudget?'var(--green)':'var(--red)'],
+    [typeLbl+' payment','$'+Math.round(loanPmt).toLocaleString()+'/mo',loanPmt<=maxAfford?'var(--green)':'var(--red)'],
+    loanType==='housing'?['Property tax','$'+Math.round(taxMo).toLocaleString()+'/mo','var(--text)']:null,
+    ins>0?['Insurance','$'+Math.round(ins/12).toLocaleString()+'/mo','var(--text)']:null,
+    loanType==='housing'&&hoa>0?['HOA','$'+hoa+'/mo','var(--text)']:null,
+    ['Total monthly','$'+Math.round(totalMo).toLocaleString()+'/mo',dti<dtiPct*100?'var(--green)':'var(--red)'],
+    null,
+    ['Total interest','$'+Math.round(totalInt).toLocaleString(),'var(--red)'],
+    ['Total cost','$'+Math.round(totalCost).toLocaleString(),'var(--text)'],
+  ].filter(Boolean);
+
+  $('bSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">${brkItems.map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div>
+  <div class="abox ${withinBudget?'abox-g':'abox-r'}" style="margin-top:.75rem;font-size:11px">${
+    withinBudget
+    ?'<strong>✓ Within budget</strong> — Bank would approve up to $'+Math.round(maxApproved).toLocaleString()+' at '+(userRate+rAdj).toFixed(2)+'%. '+(loanType==='housing'?'Total interest: $'+Math.round(totalInt).toLocaleString()+'.':'Payment: $'+Math.round(loanPmt).toLocaleString()+'/mo. Total interest: $'+Math.round(totalInt).toLocaleString()+'.')
+    :'<strong>✗ Over budget</strong> — You need $'+Math.round(actualLoan).toLocaleString()+' but bank approves only $'+Math.round(maxApproved).toLocaleString()+' at this rate. Increase down payment, lower rate, or extend term.'
+  }</div>`;
+
+  // Chart: max approved by credit score (CHANGES with score for all types)
+  const isDk3=document.documentElement.getAttribute('data-theme')==='dark';
+  const scores=[850,800,760,720,700,680,660,620,580];
+  const powers=scores.map(s=>{
+    let ra=s>=760?-0.5:s>=700?0:s>=680?0.25:s>=660?0.5:s>=620?1.0:2.5;
+    const er=(userRate+ra)/100/12;
+    if(er>0){
+      const f2=(1-Math.pow(1+er,-n))/er;
+      let ap=Math.max(0,Math.min(maxAfford,moInc*0.36-debts)-fixedC);
+      let ml=ap*f2;
+      if(loanType==='housing'&&txRate>0){ap=Math.max(0,Math.min(maxAfford,moInc*0.36-debts)-fixedC-(ml+down)*txRate/12);ml=ap*f2}
+      return Math.round(ml+down);
+    }
+    return Math.round(down);
+  });
+  if(bCI)bCI.destroy();
+  bCI=new Chart($('bChart').getContext('2d'),{type:'bar',data:{labels:scores.map(String),datasets:[{
+    label:'Max Approved + Down',data:powers,
+    backgroundColor:scores.map(s=>s===score?(isDk3?'#4ade80':'#16a34a'):(isDk3?'rgba(96,165,250,0.4)':'rgba(29,78,216,0.3)')),borderRadius:4
+  }]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    x:{ticks:{color:isDk3?'#64748b':'#64748b',font:{size:10}},grid:{display:false}},
+    y:{ticks:{color:isDk3?'#64748b':'#64748b',font:{size:10,family:'IBM Plex Mono'},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'k':'$'+v},grid:{color:isDk3?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)'}}
+  }}});
+ }catch(e){console.error('cbuy:',e);const el=$('bStats');if(el)el.innerHTML=`<div class="stat sr" style="grid-column:1/-1"><div class="sl">Error</div><div class="sv" style="font-size:11px">${e.message}</div></div>`}
+}
+
+
+
+
+
+
 
 // ═══════════════════ HYSA ═══════════════════
 let hCI=null,hComp=365;
