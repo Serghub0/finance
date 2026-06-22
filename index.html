@@ -641,6 +641,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
     <button class="pt" onclick="spt('overview',this)">📊 Market Overview</button>
     <button class="pt" onclick="spt('sheatmap',this)">🗺 Stock Heatmap</button>
     <button class="pt" onclick="spt('cheatmap',this)">₿ Crypto Heatmap</button>
+    <button class="pt" onclick="spt('fxheatmap',this)">💱 Forex Heatmap</button>
     <button class="pt" onclick="spt('movers',this)">🔥 Top Movers</button>
     <button class="pt" onclick="spt('crypto',this)">📈 Crypto Detail</button>
   </div>
@@ -691,6 +692,22 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
   </div>
 
   <!-- TOP MOVERS -->
+
+  <!-- FOREX HEATMAP -->
+  <div id="pp-fxheatmap" style="display:none">
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--cyan)"></div><span class="ct">💱 Forex Heatmap — Major Currency Pairs</span></div></div>
+      <div class="cb" style="padding:0">
+        <div class="tradingview-widget-container" style="height:550px">
+          <iframe id="tvFxHeat" style="width:100%;height:100%;border:none" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="abox abox-b">
+      <strong>How to read:</strong> Green = currency strengthening, Red = weakening. Size = trading volume. EUR/USD is the world's most traded pair. Track USD strength — when the dollar strengthens, stocks and crypto often weaken. A weak dollar benefits US exporters and commodity prices.
+    </div>
+  </div>
+
   <div id="pp-movers" style="display:none">
     <div class="card" style="margin-bottom:1.25rem">
       <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--red)"></div><span class="ct">🔥 Top Gainers & Losers — Live</span></div></div>
@@ -910,6 +927,31 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
   </div>
 
   <!-- DISCLAIMER -->
+
+  <!-- CAPITAL DISTRIBUTION CALCULATOR -->
+  <div class="card" style="margin-bottom:.75rem">
+    <details>
+      <summary style="padding:1rem 1.25rem;cursor:pointer;display:flex;align-items:center;gap:10px;list-style:none">
+        <span style="font-size:16px">💰</span>
+        <div style="flex:1"><div style="font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--green)">Capital Distribution Calculator</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Enter your capital and age — get exact dollar amounts per risk level</div></div>
+        <span style="color:var(--text4);font-size:14px;transition:transform .2s" class="acc-arrow">▶</span>
+      </summary>
+      <div style="padding:0 1.25rem 1.25rem;font-size:12px;line-height:1.8;color:var(--text2)">
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+          <div class="fl" style="flex:1;min-width:200px;margin-bottom:0">
+            <div class="fll">Capital to invest</div>
+            <div class="iw"><span class="ip">$</span><input type="number" class="pp" id="edCap" value="10000" min="100" step="500" oninput="calcDist()"></div>
+          </div>
+          <div class="fl" style="flex:1;min-width:200px;margin-bottom:0">
+            <div class="fll">Your age <span class="flv" id="edAgeL">35</span></div>
+            <div class="rr"><input type="range" id="edAge" min="18" max="70" value="35" oninput="calcDist()"><span class="rv" id="edAgeD">35</span></div>
+          </div>
+        </div>
+        <div id="edResult"></div>
+      </div>
+    </details>
+  </div>
+
   <div class="abox abox-a" style="font-size:11px;line-height:1.7">
     <strong>Disclaimer:</strong> Rosalie Financial Desk is an educational calculator tool. It does not provide financial advice, buy/sell recommendations, or guarantees of returns. Past performance does not guarantee future results. All investments carry risk including loss of principal. Consult a licensed financial advisor before making investment decisions. FDIC insurance covers bank deposits only — not stocks, ETFs, crypto, or real estate. The allocations shown are general guidelines, not personalized advice.
   </div>
@@ -1602,7 +1644,7 @@ function cmp(){
 // ═══════════════════ MARKET PULSE — TradingView ═══════════════════
 const tvLoaded={};
 function spt(n,btn){
-  ['overview','sheatmap','cheatmap','movers','crypto','news'].forEach(x=>{
+  ['overview','sheatmap','cheatmap','fxheatmap','movers','crypto','news'].forEach(x=>{
     const el=$('pp-'+x);if(el) el.style.display=x===n?'block':'none';
   });
   document.querySelectorAll('.pt').forEach(b=>b.classList.remove('on'));
@@ -1652,6 +1694,14 @@ function loadTV(section){
       colorTheme:theme,width:"100%",height:"100%",isTransparent:true
     }));
     tvLoaded.cheatmap=true;
+  }
+
+  if(section==='fxheatmap'&&!tvLoaded.fxheatmap){
+    $('tvFxHeat').src='https://s.tradingview.com/embed-widget/forex-heat-map/?locale=en#'+encodeURIComponent(JSON.stringify({
+      currencies:["EUR","USD","GBP","JPY","CHF","AUD","CAD","NZD","CNY"],
+      isTransparent:true,colorTheme:theme,width:"100%",height:"100%"
+    }));
+    tvLoaded.fxheatmap=true;
   }
 
   if(section==='movers'&&!tvLoaded.movers){
@@ -1792,6 +1842,69 @@ async function autoFetchDefaults(){
   }catch(e){
     console.log('ℹ Rosalie: Yahoo Finance unavailable — using cached defaults. This is normal in some browsers.');
   }
+}
+
+// ═══════════════════ CAPITAL DISTRIBUTION ═══════════════════
+function calcDist(){
+  const cap=parseFloat($('edCap')?.value)||10000;
+  const age=parseInt($('edAge')?.value)||35;
+  try{$('edAgeL').textContent=age;$('edAgeD').textContent=age;ur($('edAge'),'--green')}catch(e){}
+
+  // Calculate allocation percentages based on age
+  // Young (20-30): aggressive. Mid (35-50): balanced. Senior (55+): conservative.
+  let noRisk,lowRisk,moderate,higher,speculative;
+  if(age<=25){noRisk=10;lowRisk=15;moderate=30;higher=30;speculative=15}
+  else if(age<=35){noRisk=15;lowRisk=20;moderate=30;higher=25;speculative=10}
+  else if(age<=45){noRisk=20;lowRisk=25;moderate=30;higher=20;speculative=5}
+  else if(age<=55){noRisk=30;lowRisk=25;moderate=25;higher=15;speculative=5}
+  else if(age<=65){noRisk=40;lowRisk=30;moderate=20;higher=10;speculative=0}
+  else{noRisk=50;lowRisk=30;moderate=15;higher=5;speculative=0}
+
+  const tiers=[
+    {icon:'🟢',name:'No Risk (HYSA / CDs / T-Bills)',pct:noRisk,color:'var(--green)',
+     examples:'HYSA at 3.75-5% APY, 6-12 month CDs, Treasury Bills. FDIC insured.'},
+    {icon:'🔵',name:'Low Risk (SCHD / JEPI / 401k / Bonds)',pct:lowRisk,color:'var(--blue)',
+     examples:'SCHD (3.2% div), JEPI (8.4%), 401(k) with employer match, bond ETFs.'},
+    {icon:'🟡',name:'Moderate (S&P 500 / QQQI / Real Estate)',pct:moderate,color:'var(--amber)',
+     examples:'SPY/VOO (10%/yr avg), QQQI (14.2%), SPYI (12%), rental properties.'},
+    {icon:'🟠',name:'Higher Risk (MAGY / FSELX / Growth Stocks)',pct:higher,color:'var(--red)',
+     examples:'MAGY (37% yield), FSELX (+62%/yr), NVDA, individual Mag 7 stocks.'},
+    {icon:'🔴',name:'Speculative (Crypto / Day Trading)',pct:speculative,color:'var(--red)',
+     examples:'Bitcoin, Ethereum, XRP, altcoins, options, leveraged ETFs.'}
+  ];
+
+  const rows=tiers.map(t=>{
+    const amt=Math.round(cap*t.pct/100);
+    const barWidth=Math.max(2,t.pct);
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:12px">${t.icon} <strong>${t.name}</strong></span>
+        <span style="font-family:var(--font-m);font-weight:700;color:${t.color};font-size:14px">$${amt.toLocaleString()}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+        <div style="flex:1;height:8px;background:var(--surface2);border-radius:99px;overflow:hidden">
+          <div style="width:${barWidth}%;height:100%;background:${t.color};border-radius:99px;transition:width .3s"></div>
+        </div>
+        <span style="font-family:var(--font-m);font-size:11px;color:${t.color};min-width:36px;text-align:right">${t.pct}%</span>
+      </div>
+      <div style="font-size:10px;color:var(--text4);padding-left:22px">${t.examples}</div>
+    </div>`;
+  }).join('');
+
+  const profile=age<=30?'Young Builder':age<=45?'Growth Phase':age<=55?'Balanced':age<=65?'Pre-Retirement':'Conservative';
+  $('edResult').innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:8px 0;margin-bottom:12px;border-bottom:2px solid var(--border)">
+      <span style="font-size:13px;font-weight:600">Distributing <span style="color:var(--green)">$${cap.toLocaleString()}</span> at age <span style="color:var(--cyan)">${age}</span></span>
+      <span style="font-size:11px;color:var(--purple);font-weight:600">${profile} Profile</span>
+    </div>
+    ${rows}
+    <div style="display:flex;justify-content:space-between;padding:8px 0;margin-top:8px;border-top:2px solid var(--border);font-weight:700;font-size:13px">
+      <span>Total allocated</span>
+      <span style="color:var(--green)">$${cap.toLocaleString()} (100%)</span>
+    </div>
+    <div style="margin-top:12px;padding:.7rem .9rem;background:var(--surface2);border-radius:var(--r);font-size:11px;color:var(--text3);line-height:1.7">
+      <strong style="color:var(--text2)">At age ${age} (${profile}):</strong> Keep ${noRisk}% ($${Math.round(cap*noRisk/100).toLocaleString()}) fully protected in HYSA or CDs as your safety net. Deploy ${lowRisk+moderate}% ($${Math.round(cap*(lowRisk+moderate)/100).toLocaleString()}) into stable income and growth assets. Allocate ${higher}% ($${Math.round(cap*higher/100).toLocaleString()}) to higher-yield opportunities like MAGY.${speculative>0?' Reserve '+speculative+'% ($'+Math.round(cap*speculative/100).toLocaleString()+') for speculative plays — only money you can afford to lose.':' Skip speculative investments at this stage — focus on capital preservation.'}
+    </div>`;
 }
 
 // ═══════════════════ INIT ═══════════════════
