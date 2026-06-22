@@ -1913,6 +1913,25 @@ initR();ci();
 // Auto-load news feed since Market Pulse > News is the default view
 setTimeout(()=>loadTV('news'), 800);
 setTimeout(autoFetchDefaults, 500);
+
+// Auto-refresh when app returns from background (iPad/iPhone home screen app)
+// No button needed — data refreshes automatically when you switch back
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden){
+    Object.keys(tvLoaded).forEach(k=>{tvLoaded[k]=false});
+    const panels=['news','overview','sheatmap','cheatmap','fxheatmap','movers'];
+    for(const p of panels){const el=$('pp-'+p);if(el&&el.style.display!=='none'){loadTV(p);break}}
+  }
+});
+window.addEventListener('focus',function(){
+  const now=Date.now();
+  if(!window._lastFocus||now-window._lastFocus>60000){
+    window._lastFocus=now;
+    Object.keys(tvLoaded).forEach(k=>{tvLoaded[k]=false});
+    const panels=['news','overview','sheatmap','cheatmap','fxheatmap','movers'];
+    for(const p of panels){const el=$('pp-'+p);if(el&&el.style.display!=='none'){loadTV(p);break}}
+  }
+});
 </script>
 </body>
 </html>
