@@ -710,7 +710,14 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
 
   <div id="pp-movers" style="display:none">
     <div class="card" style="margin-bottom:1.25rem">
-      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--red)"></div><span class="ct">🔥 Top Gainers & Losers — Live</span></div></div>
+      <div class="ch">
+        <div class="ch-left"><div class="cdot" style="background:var(--red)"></div><span class="ct">🔥 Top Gainers & Losers</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <a href="https://finviz.com/screener.ashx?v=111&s=ta_topgainers" target="_blank" rel="noopener" style="font-size:9px;color:var(--green);text-decoration:none;padding:3px 7px;border:1px solid var(--green);border-radius:var(--r)">📈 Finviz Gainers</a>
+          <a href="https://finviz.com/screener.ashx?v=111&s=ta_toplosers" target="_blank" rel="noopener" style="font-size:9px;color:var(--red);text-decoration:none;padding:3px 7px;border:1px solid var(--red);border-radius:var(--r)">📉 Losers</a>
+          <a href="https://finviz.com/screener.ashx?v=111&s=ta_mostactive" target="_blank" rel="noopener" style="font-size:9px;color:var(--amber);text-decoration:none;padding:3px 7px;border:1px solid var(--amber);border-radius:var(--r)">🔥 Most Active</a>
+        </div>
+      </div>
       <div class="cb" style="padding:0">
         <div class="tradingview-widget-container" style="height:500px">
           <iframe id="tvMovers" style="width:100%;height:100%;border:none" loading="lazy"></iframe>
@@ -718,9 +725,10 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
       </div>
     </div>
     <div class="abox abox-b">
-      <strong>How to use for your trading:</strong> Check top gainers the night before to spot momentum setups for your bull flag scanner. Top losers can signal oversold bounce opportunities or sectors to avoid. If your holdings (MAGY, CCL, OXY, RCL) appear in the losers list — check why before reacting. Often it's a buying opportunity, not a sell signal.
+      <strong>Tip:</strong> If the widget shows old data, tap the Finviz links above for guaranteed real-time gainers, losers, and most active stocks — updated every trading day.
     </div>
   </div>
+
 
   <!-- CRYPTO DETAIL (CoinGecko fallback) -->
   <div id="pp-crypto" style="display:none">
@@ -753,6 +761,15 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
       <div style="height:46px"><iframe id="tvTicker" style="width:100%;height:100%;border:none" loading="lazy"></iframe></div>
     </div>
 
+    <!-- QUICK NEWS LINKS -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem">
+      <a href="https://finviz.com/news.ashx" target="_blank" rel="noopener" style="font-size:10px;color:var(--cyan);text-decoration:none;padding:4px 10px;border:1px solid var(--cyan);border-radius:var(--r)">📰 Finviz News</a>
+      <a href="https://finviz.com/crypto_performance.ashx" target="_blank" rel="noopener" style="font-size:10px;color:var(--amber);text-decoration:none;padding:4px 10px;border:1px solid var(--amber);border-radius:var(--r)">₿ Finviz Crypto</a>
+      <a href="https://finviz.com/map.ashx" target="_blank" rel="noopener" style="font-size:10px;color:var(--green);text-decoration:none;padding:4px 10px;border:1px solid var(--green);border-radius:var(--r)">🗺 Finviz Map</a>
+      <a href="https://www.cnbc.com/markets/" target="_blank" rel="noopener" style="font-size:10px;color:var(--blue);text-decoration:none;padding:4px 10px;border:1px solid var(--blue);border-radius:var(--r)">📊 CNBC Markets</a>
+      <a href="https://finance.yahoo.com/" target="_blank" rel="noopener" style="font-size:10px;color:var(--purple);text-decoration:none;padding:4px 10px;border:1px solid var(--purple);border-radius:var(--r)">📈 Yahoo Finance</a>
+    </div>
+
     <!-- UNIFIED NEWS FEED -->
     <div class="card">
       <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">📰 Market News — Stocks · Crypto · Global</span></div></div>
@@ -761,7 +778,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
       </div>
     </div>
     <div class="abox abox-b" style="margin-top:1rem">
-      <strong>Sources:</strong> Reuters, Dow Jones, Benzinga, CoinDesk — financial wire services only. No opinion blogs, no political propaganda. Covers Mag 7 stocks, crypto (BTC, ETH, XRP), S&P 500, and macro events that move your positions.
+      <strong>Sources:</strong> TradingView aggregates Reuters, Dow Jones, Benzinga, CoinDesk. For guaranteed fresh data, tap <strong>Finviz News</strong> above — it pulls from 100+ financial sources with zero caching. <strong>Finviz Crypto</strong> shows live crypto performance. <strong>CNBC</strong> and <strong>Yahoo Finance</strong> for broader market coverage.
     </div>
   </div>
 
@@ -1447,7 +1464,7 @@ function runCmpCalc(inp,yrs){
   if(mt==='income_etf'){
     const m=runIM(cap,inp.price,rate,inp.drift,inp.strat,tax,yrs,addM,52);
     // Convert runIM output format to compare format
-    const cRows=m.rows.map(r=>({y:r.y,bal:r.pv+r.tc,mo:r.mo,tC:r.ti}));
+    const cRows=m.rows.map(r=>({y:r.y,bal:r.pv+r.tc,mo:r.mo,tC:r.ti}))+'&_cb='+Date.now();
     const cBVals=[cap,...m.rows.map(r=>Math.round(r.pv+r.tc))];
     return{rows:cRows,bVals:cBVals};
   }
@@ -1655,6 +1672,7 @@ function spt(n,btn){
 function loadTV(section){
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';
   const theme=isDark?'dark':'light';
+  const cb='&_t='+Date.now(); // cache buster
 
   if(section==='overview'&&!tvLoaded.overview){
     $('tvOverview').src='https://s.tradingview.com/embed-widget/market-overview/?locale=en#'+encodeURIComponent(JSON.stringify({
@@ -1674,7 +1692,7 @@ function loadTV(section){
           {s:"BITSTAMP:XRPUSD",d:"XRP"},{s:"BINANCE:SOLUSDT",d:"Solana"}
         ]}
       ]
-    }));
+    }))+'&_cb='+Date.now();
     tvLoaded.overview=true;
   }
 
@@ -1683,7 +1701,7 @@ function loadTV(section){
       exchanges:[],dataSource:"SPX500",grouping:"sector",blockSize:"market_cap_basic",
       blockColor:"change",hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,
       hasSymbolTooltip:true,colorTheme:theme,width:"100%",height:"100%",isTransparent:true
-    }));
+    }))+'&_cb='+Date.now();
     tvLoaded.sheatmap=true;
   }
 
@@ -1692,7 +1710,7 @@ function loadTV(section){
       dataSource:"Crypto",blockSize:"market_cap_calc",blockColor:"change",
       hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,
       colorTheme:theme,width:"100%",height:"100%",isTransparent:true
-    }));
+    }))+'&_cb='+Date.now();
     tvLoaded.cheatmap=true;
   }
 
@@ -1700,7 +1718,7 @@ function loadTV(section){
     $('tvFxHeat').src='https://s.tradingview.com/embed-widget/forex-heat-map/?locale=en#'+encodeURIComponent(JSON.stringify({
       currencies:["EUR","USD","GBP","JPY","CHF","AUD","CAD","NZD","CNY"],
       isTransparent:true,colorTheme:theme,width:"100%",height:"100%"
-    }));
+    }))+'&_cb='+Date.now();
     tvLoaded.fxheatmap=true;
   }
 
@@ -1708,7 +1726,7 @@ function loadTV(section){
     $('tvMovers').src='https://s.tradingview.com/embed-widget/hotlists/?locale=en#'+encodeURIComponent(JSON.stringify({
       colorTheme:theme,dateRange:"1D",exchange:"US",showChart:true,
       showSymbolLogo:true,showFloatingTooltip:true,width:"100%",height:"100%",isTransparent:true
-    }));
+    }))+'&_cb='+Date.now();
     tvLoaded.movers=true;
   }
 
@@ -1724,13 +1742,13 @@ function loadTV(section){
         {proName:"FX:EURUSD",title:"EUR/USD"},{proName:"TVC:GOLD",title:"Gold"}
       ],
       showSymbolLogo:true,isTransparent:true,displayMode:"compact",colorTheme:theme
-    }));
+    }))+'&_cb='+Date.now();
     // Unified news feed — stocks + crypto + macro
     $('tvNewsFeed').src='https://s.tradingview.com/embed-widget/timeline/?locale=en#'+encodeURIComponent(JSON.stringify({
       feedMode:"all_symbols",colorTheme:theme,isTransparent:true,
       displayMode:"regular",width:"100%",height:"100%",
       symbols:"NASDAQ:AAPL,NASDAQ:NVDA,NASDAQ:MSFT,NASDAQ:GOOGL,NASDAQ:AMZN,NASDAQ:META,NASDAQ:TSLA,AMEX:SPY,AMEX:QQQ,BITSTAMP:BTCUSD,BITSTAMP:ETHUSD,BITSTAMP:XRPUSD,BINANCE:SOLUSDT"
-    }));
+    }))+'&_cb='+Date.now();
     tvLoaded.news=true;
   }
 }
