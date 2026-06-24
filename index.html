@@ -550,6 +550,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
           <option value="stock">Stock / ETF Growth</option>
           <option value="crypto">Crypto Asset</option>
           <option value="realestate">Real Estate (equity)</option>
+          <option value="withdrawal">Withdrawal Calculator</option>
           <option value="other">Other Investment</option>
         </select>
       </div>
@@ -557,6 +558,9 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
       <div class="fl"><div class="fll">Starting balance / capital</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="hSt" value="234000" step="1000" oninput="ch()"></div></div>
       <div class="fl"><div class="fll">Annual return rate (%) <span class="flv" id="hRL">3.75%</span></div><div class="rr"><input type="range" id="hR" min="0.1" max="50" step="0.05" value="3.75" oninput="document.getElementById('hRL').textContent=parseFloat(this.value).toFixed(2)+'%';document.getElementById('hRD').textContent=parseFloat(this.value).toFixed(2)+'%';ur(this,'--purple');ch()"><span class="rv" id="hRD">3.75%</span></div></div>
       <div class="fl"><div class="fll">Monthly contribution</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="hAdd" value="0" step="100" oninput="ch()"></div></div>
+      <div id="hWithRow">
+        <div class="fl"><div class="fll">Monthly withdrawal <span id="hWithNote" style="font-size:9px;color:var(--amber)"></span></div><div style="display:flex;gap:6px;align-items:center"><div class="iw" style="flex:1"><span class="ip" id="hWithPrefix">$</span><input type="number" class="pp" id="hWith" value="500" step="50" oninput="ch()"></div><select id="hWithType" onchange="toggleWithType();ch()" style="width:auto;min-width:70px;font-size:11px;padding:8px 6px"><option value="dollar">$ / month</option><option value="percent">% / month</option></select></div></div>
+      </div>
       <div class="fl"><div class="fll">Years <span class="flv" id="hYrL">10</span></div><div class="rr"><input type="range" id="hYr" min="1" max="30" value="10" oninput="document.getElementById('hYrL').textContent=this.value;document.getElementById('hYrD').textContent=this.value;ur(this,'--purple');ch()"><span class="rv" id="hYrD">10</span></div></div>
       <div class="fl"><div class="fll">Compounding</div><div class="tg"><div class="tb on" onclick="shc(365,this)">Daily</div><div class="tb" onclick="shc(12,this)">Monthly</div><div class="tb" onclick="shc(4,this)">Quarterly</div><div class="tb" onclick="shc(1,this)">Annual</div></div></div>
       <hr>
@@ -578,7 +582,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
   <div class="card">
     <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Year-by-Year Table</span></div></div>
     <div class="cb tscroll">
-      <table><thead><tr><th>Year</th><th>Balance</th><th>Annual Return</th><th>Tax Paid</th><th>Net Return</th><th>Contributed</th><th>Inflation Value</th><th>Real Gain</th></tr></thead><tbody id="hTb"></tbody></table>
+      <table><thead><tr><th>Year</th><th>Balance</th><th>Deposits</th><th>Withdrawals</th><th>Interest</th><th>Tax Paid</th><th>Inflation Value</th><th>Real Gain</th></tr></thead><tbody id="hTb"></tbody></table>
     </div>
   </div>
 </div>
@@ -1298,48 +1302,99 @@ function cbuy(){
 // ═══════════════════ HYSA ═══════════════════
 let hCI=null,hComp=365;
 function shc(c,b){hComp=c;document.querySelectorAll('#panel-hysa .tg .tb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ch()}
+function toggleWithType(){const isPct=$('hWithType')?.value==='percent';const prefix=$('hWithPrefix');if(prefix)prefix.textContent=isPct?'%':'$';const inp=$('hWith');if(inp&&isPct&&parseFloat(inp.value)>20)inp.value=1;if(inp&&!isPct&&parseFloat(inp.value)<5)inp.value=500}
 function ch(){
   const type=$('hType')?.value||'hysa';
   const nr=$('hNameRow');
   if(nr) nr.style.display=(type==='stock'||type==='crypto'||type==='realestate'||type==='other')?'block':'none';
+  const wr=$('hWithRow');
+  
+  const types={hysa:'HYSA',brokerage:'Brokerage','401k':'401(k)',roth:'Roth IRA',cd:'CD',stock:'Stock/ETF',crypto:'Crypto',realestate:'Real Estate',withdrawal:'Withdrawal Calc',other:$('hName')?.value||'Other'};
   const st=parseFloat($('hSt').value)||234000,rate=parseFloat($('hR').value)/100;
   const addM=parseFloat($('hAdd').value)||0,yrs=parseInt($('hYr').value)||10;
   const tax=parseFloat($('hTx').value)||0,infl=parseFloat($('hIn').value)/100;
-  let bal=st,tInt=0,tC=st;
-  const rows=[],bVals=[st],iVals=[st],labels=['Now'];
+  const withVal=parseFloat($('hWith')?.value)||0;
+  const withType=$('hWithType')?.value||'dollar';
+  try{const wn=$('hWithNote');if(wn){if(withType==='percent'&&withVal>0)wn.textContent='('+withVal+'%/mo = '+(withVal*12).toFixed(1)+'%/yr)';else if(withType==='dollar'&&withVal>0)wn.textContent='($'+withVal+'/mo = $'+(withVal*12).toLocaleString()+'/yr)';else wn.textContent=''}}catch(e){}
+  let bal=st,tInt=0,tC=st,tWith=0,tDep=0;
+  const rows=[],bVals=[st],iVals=[st];
   for(let y=1;y<=yrs;y++){
-    let yInt=0;
+    let yInt=0,yDep=0,yWith=0;
     if(hComp>=12){
-      // Daily or Monthly compounding
       for(let m=0;m<12;m++){
-        if(addM>0){bal+=addM;tC+=addM}
+        if(addM>0){bal+=addM;tC+=addM;tDep+=addM;yDep+=addM}
+        const wAmt=withType==='percent'?bal*(withVal/100):withVal;
+        if(wAmt>0&&bal>wAmt){bal-=wAmt;tWith+=wAmt;yWith+=wAmt}
         const periods=hComp===365?30:1;
         for(let d=0;d<periods;d++){const int=bal*(rate/hComp);yInt+=int;bal+=int}
       }
     }else if(hComp===4){
-      // Quarterly compounding
       for(let m=0;m<12;m++){
-        if(addM>0){bal+=addM;tC+=addM}
+        if(addM>0){bal+=addM;tC+=addM;tDep+=addM;yDep+=addM}
+        const wAmt=withType==='percent'?bal*(withVal/100):withVal;
+        if(wAmt>0&&bal>wAmt){bal-=wAmt;tWith+=wAmt;yWith+=wAmt}
         if((m+1)%3===0){const int=bal*(rate/4);yInt+=int;bal+=int}
       }
     }else{
-      // Annual compounding
-      for(let m=0;m<12;m++){if(addM>0){bal+=addM;tC+=addM}}
+      for(let m=0;m<12;m++){
+        if(addM>0){bal+=addM;tC+=addM;tDep+=addM;yDep+=addM}
+        const wAmt=withType==='percent'?bal*(withVal/100):withVal;
+        if(wAmt>0&&bal>wAmt){bal-=wAmt;tWith+=wAmt;yWith+=wAmt}
+      }
       const int=bal*rate;yInt+=int;bal+=int;
     }
-    const tp=yInt*tax,ni=yInt-tp;tInt+=ni;
-    const iv=st*Math.pow(1+infl,y)+tC-st;
-    rows.push({y,bal,yInt,tp,ni,tC,iv,rg:bal-iv});
-    bVals.push(Math.round(bal));iVals.push(Math.round(iv));labels.push('Yr '+y);
+    const tp=yInt*tax,ni=yInt*(1-tax);tInt+=ni;
+    const iv=st*Math.pow(1+infl,y),rg=bal-iv;
+    const mo=bal*rate/12*(1-tax);
+    rows.push({y,bal,yInt,tp,ni,yDep,yWith,tC,iv,rg,mo});
+    bVals.push(Math.round(bal));iVals.push(Math.round(iv));
   }
-  const last=rows[rows.length-1],mo=rows[0]?.yInt/12||0;
-  const types={hysa:'HYSA',brokerage:'Brokerage','401k':'401(k)',roth:'Roth IRA',cd:'CD',stock:'Stock/ETF',crypto:'Crypto',realestate:'Real Estate',other:$('hName')?.value||'Other'};
-  $('hStats').innerHTML=`<div class="stat sp"><div class="sl">Balance yr ${yrs}</div><div class="sv">${fmtD(last.bal,0)}</div><div class="ss">${types[$('hType').value]}</div></div><div class="stat sg"><div class="sl">Net interest</div><div class="sv">${fmtD(tInt,0)}</div><div class="ss">after ${(tax*100).toFixed(0)}% tax</div></div><div class="stat sb"><div class="sl">Monthly income yr1</div><div class="sv">${fmtD(mo,0)}</div><div class="ss">at ${(rate*100).toFixed(2)}% APY</div></div><div class="stat ${last.rg>0?'sg':'sr'}"><div class="sl">Real gain vs inflation</div><div class="sv">${last.rg>0?'+':''}${fmtD(last.rg,0)}</div><div class="ss">after ${(infl*100).toFixed(1)}% inflation</div></div><div class="stat sa"><div class="sl">Total contributed</div><div class="sv">${fmtD(last.tC,0)}</div><div class="ss">incl. additions</div></div><div class="stat ${tax>0?'sr':'sg'}"><div class="sl">Tax yr 1</div><div class="sv">${fmtD(rows[0]?.tp||0,0)}</div><div class="ss">${tax>0?'ordinary income':'tax-free ✓'}</div></div>`;
-  $('hSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${[['Account',types[$('hType').value],'var(--text)'],['Starting balance',fmtD(st,0),'var(--text)'],['APY',(rate*100).toFixed(2)+'%','var(--purple)'],['Monthly add',fmtD(addM,0),'var(--text)'],['Compounding',hComp===365?'Daily':hComp===12?'Monthly':hComp===4?'Quarterly':'Annual','var(--text)'],['Balance yr '+yrs,fmtD(last.bal,0),'var(--purple)'],['Net interest',fmtD(tInt,0),'var(--green)'],['Inflation value',fmtD(last.iv,0),'var(--red)'],['Real gain',fmtD(last.rg,0),last.rg>0?'var(--green)':'var(--red)'],['Beating inflation',last.rg>0?'✅ Yes':'❌ No',last.rg>0?'var(--green)':'var(--red)']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div><div class="abox ${rate>infl?'abox-g':'abox-a'}" style="margin-top:.75rem">${rate>infl?`<strong>✅ Beating inflation</strong> — Your ${(rate*100).toFixed(2)}% APY exceeds ${(infl*100).toFixed(1)}% inflation. Real wealth is growing.`:`<strong>⚠ Losing to inflation</strong> — ${(rate*100).toFixed(2)}% APY vs ${(infl*100).toFixed(1)}% inflation. Consider higher-yield vehicles.`}</div>`;
+  const last=rows[rows.length-1];
+  // Stats
+  $('hStats').innerHTML=`
+    <div class="stat sp"><div class="sl">Balance yr ${yrs}</div><div class="sv">${fmtD(last.bal,0)}</div><div class="ss">${types[$('hType').value]}</div></div>
+    <div class="stat sg"><div class="sl">Net interest</div><div class="sv">${fmtD(tInt,0)}</div><div class="ss">after ${(tax*100)}% tax</div></div>
+    <div class="stat sa"><div class="sl">Monthly income yr1</div><div class="sv">${fmtD(rows[0].mo,0)}</div><div class="ss">at ${(rate*100).toFixed(2)}% APY</div></div>
+    <div class="stat ${last.rg>0?'sg':'sr'}"><div class="sl">Real gain vs inflation</div><div class="sv">${fmtD(last.rg,0)}</div><div class="ss">after ${(infl*100).toFixed(1)}% inflation</div></div>
+    <div class="stat sc"><div class="sl">Total contributed</div><div class="sv">${fmtD(tC,0)}</div><div class="ss">incl. additions</div></div>
+    ${withVal>0?`<div class="stat sr"><div class="sl">Total withdrawn</div><div class="sv">${fmtD(tWith,0)}</div><div class="ss">${withType==='percent'?withVal+'%/mo of balance':'$'+withVal+'/mo'}</div></div>`
+    :`<div class="stat sb"><div class="sl">Tax yr 1</div><div class="sv">${fmtD(rows[0].tp,0)}</div><div class="ss">${tax===0?'tax-free ✓':''}</div></div>`}`;
+  // Summary
+  $('hSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${[
+    ['Account',types[$('hType').value],'var(--text)'],
+    ['Starting balance',fmtD(st,0),'var(--text)'],
+    ['APY',(rate*100).toFixed(2)+'%','var(--purple)'],
+    ['Monthly deposit',fmtD(addM,0),'var(--green)'],
+    ['Monthly withdrawal',withVal>0?(withType==='percent'?withVal+'% of balance':'$'+withVal):'None',withVal>0?'var(--red)':'var(--text3)'],
+    ['Compounding',hComp===365?'Daily':hComp===12?'Monthly':hComp===4?'Quarterly':'Annual','var(--text)'],
+    ['Balance yr '+yrs,fmtD(last.bal,0),'var(--purple)'],
+    ['Total interest earned',fmtD(tInt,0),'var(--green)'],
+    withVal>0?['Total withdrawn',fmtD(tWith,0),'var(--red)']:null,
+    ['Inflation value',fmtD(last.iv,0),'var(--red)'],
+    ['Real gain',fmtD(last.rg,0),last.rg>0?'var(--green)':'var(--red)'],
+    ['Beating inflation',last.rg>0?'✅ Yes':'❌ No',last.rg>0?'var(--green)':'var(--red)']
+  ].filter(Boolean).map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div><div class="abox ${rate>infl?'abox-g':'abox-a'}" style="margin-top:.75rem">${rate>infl?`<strong>✅ Beating inflation</strong> — Your ${(rate*100).toFixed(2)}% APY exceeds ${(infl*100).toFixed(1)}% inflation.${withVal>0?' Even with $'+Math.round(tWith).toLocaleString()+' withdrawn, balance grew to '+fmtD(last.bal,0)+'.':''}`:withVal>0?`<strong>⚠ Withdrawals impact</strong> — $${Math.round(tWith).toLocaleString()} withdrawn over ${yrs} years.${last.bal<st?' Balance declined from '+fmtD(st,0)+' to '+fmtD(last.bal,0)+'.':''}`:`<strong>⚠ Losing to inflation</strong> — ${(rate*100).toFixed(2)}% APY vs ${(infl*100).toFixed(1)}% inflation.`}</div>`;
+  // Chart
+  const isDk=document.documentElement.getAttribute('data-theme')==='dark';
+  const labels=['Now',...rows.map(r=>'Yr '+r.y)];
   if(hCI)hCI.destroy();
-  hCI=new Chart($('hChart').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Balance',data:bVals,borderColor:'var(--purple)',backgroundColor:'rgba(124,58,237,0.08)',fill:true,tension:.4,pointRadius:3},{label:'Inflation adjusted',data:iVals,borderColor:'var(--red)',backgroundColor:'transparent',tension:.4,pointRadius:2,borderDash:[5,3]},{label:'Contributed',data:rows.reduce((a,r)=>[...a,Math.round(r.tC)],[st]),borderColor:'var(--text4)',backgroundColor:'transparent',tension:0,pointRadius:0,borderDash:[2,4]}]},options:cO()});
-  $('hTb').innerHTML=rows.map(r=>`<tr><td style="color:var(--text3)">Yr ${r.y}</td><td style="font-family:var(--font-m);font-weight:500;color:var(--purple)">${fmtD(r.bal,0)}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.yInt,0)}</td><td style="color:var(--red);font-family:var(--font-m)">${fmtD(r.tp,0)}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.ni,0)}</td><td style="color:var(--text3);font-family:var(--font-m)">${fmtD(r.tC,0)}</td><td style="color:var(--red);font-family:var(--font-m)">${fmtD(r.iv,0)}</td><td style="color:${r.rg>0?'var(--green)':'var(--red)'};font-family:var(--font-m)">${r.rg>0?'+':''}${fmtD(r.rg,0)}</td></tr>`).join('');
+  hCI=new Chart($('hChart').getContext('2d'),{type:'line',data:{labels,datasets:[
+    {label:'Balance',data:bVals,borderColor:isDk?'#a78bfa':'#7c3aed',backgroundColor:isDk?'rgba(167,139,250,.08)':'rgba(124,58,237,.06)',fill:true,tension:.4,pointRadius:3},
+    {label:'Inflation',data:iVals,borderColor:isDk?'#f87171':'#dc2626',backgroundColor:'transparent',tension:.4,pointRadius:0,borderDash:[3,3]}
+  ]},options:cO()});
+  // Table
+  $('hTb').innerHTML=rows.map(r=>`<tr>
+    <td style="color:var(--text3)">Yr ${r.y}</td>
+    <td style="font-family:var(--font-m);font-weight:500">${fmtD(r.bal,0)}</td>
+    <td style="color:var(--green);font-family:var(--font-m)">${r.yDep>0?'+'+fmtD(r.yDep,0):'—'}</td>
+    <td style="color:var(--red);font-family:var(--font-m)">${r.yWith>0?'-'+fmtD(r.yWith,0):'—'}</td>
+    <td style="color:var(--green);font-family:var(--font-m)">${fmtD(r.ni,0)}</td>
+    <td style="color:var(--red);font-family:var(--font-m)">${r.tp>0?fmtD(r.tp,0):'$0'}</td>
+    <td style="color:var(--text3);font-family:var(--font-m)">${fmtD(r.iv,0)}</td>
+    <td style="color:${r.rg>0?'var(--green)':'var(--red)'};font-family:var(--font-m)">${r.rg>0?'+':''}${fmtD(r.rg,0)}</td>
+  </tr>`).join('');
 }
+
 
 // ═══════════════════ COMPARE MODE ═══════════════════
 let compareMode=false, cCI=null;
@@ -1436,6 +1491,7 @@ function renderCmpForm(side, type){
     </div>
     ${c.extra.replace(/S_/g,side)}
     <div class="fl"><div class="fll">Monthly contribution</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="cAdd${side}" value="0" step="50" oninput="cmp()"></div></div>
+    <div class="fl"><div class="fll">Monthly withdrawal <span id="cWNote${side}" style="font-size:9px;color:var(--amber)"></span></div><div style="display:flex;gap:6px;align-items:center"><div class="iw" style="flex:1"><span class="ip" id="cWPfx${side}">$</span><input type="number" class="pp" id="cWith${side}" value="0" step="50" oninput="cmp()"></div><select id="cWithType${side}" onchange="toggleCmpWith('${side}');cmp()" style="width:auto;min-width:65px;font-size:10px;padding:7px 4px"><option value="dollar">$/mo</option><option value="percent">%/mo</option></select></div></div>
     <div class="fl"><div class="fll">Tax rate</div>
       <select id="cTax${side}" onchange="cmp()">
         ${c.taxOpts.map(([v,l])=>`<option value="${v}" ${v===c.taxDef?'selected':''}>${l}</option>`).join('')}
@@ -1444,6 +1500,15 @@ function renderCmpForm(side, type){
     <div class="fl" style="background:var(--surface2);border-radius:var(--r);padding:.6rem .75rem;font-size:10px;color:var(--text3)">${c.note}</div>
   `;
   $('cForm'+side).innerHTML=html;
+}
+
+function toggleCmpWith(side){
+  const isPct=document.getElementById('cWithType'+side)?.value==='percent';
+  const pfx=document.getElementById('cWPfx'+side);
+  if(pfx) pfx.textContent=isPct?'%':'$';
+  const inp=document.getElementById('cWith'+side);
+  if(inp&&isPct&&parseFloat(inp.value)>20) inp.value=1;
+  if(inp&&!isPct&&parseFloat(inp.value)<5) inp.value=0;
 }
 
 function initCmpRanges(){
@@ -1469,13 +1534,14 @@ function runCmpCalc(inp,yrs){
     return{rows:cRows,bVals:cBVals};
   }
 
-  // STOCK: pure growth using main rate
+  // STOCK: pure growth using main rate + optional withdrawal
   if(mt==='stock'){
     let bal=cap, tC=cap;
     for(let y=1;y<=yrs;y++){
       for(let m=0;m<12;m++){
         bal*=Math.pow(1+rate,1/12);
         if(addM>0){bal+=addM;tC+=addM}
+        if(inp.withVal>0){const wAmt=inp.withType==='percent'?bal*(inp.withVal/100):inp.withVal;if(bal>wAmt)bal-=wAmt}
       }
       const mo=bal*rate/12*(1-tax);
       rows.push({y,bal,mo,tC});
@@ -1491,6 +1557,7 @@ function runCmpCalc(inp,yrs){
       for(let m=0;m<12;m++){
         bal*=Math.pow(1+rate,1/12);
         if(addM>0){bal+=addM;tC+=addM}
+        if(inp.withVal>0){const wAmt=inp.withType==='percent'?bal*(inp.withVal/100):inp.withVal;if(bal>wAmt)bal-=wAmt}
       }
       const mo=bal*rate/12*(1-tax);
       rows.push({y,bal,mo,tC});
@@ -1506,6 +1573,7 @@ function runCmpCalc(inp,yrs){
       for(let m=0;m<12;m++){
         for(let d=0;d<30;d++){bal+=bal*(rate/365)}
         if(addM>0){bal+=addM;tC+=addM}
+        if(inp.withVal>0){const wAmt=inp.withType==='percent'?bal*(inp.withVal/100):inp.withVal;if(bal>wAmt)bal-=wAmt}
       }
       const mo=bal*rate/12;
       rows.push({y,bal,mo,tC});
@@ -1514,26 +1582,29 @@ function runCmpCalc(inp,yrs){
     return{rows,bVals};
   }
 
-  // CRYPTO: pure growth, zero income
+  // CRYPTO: price appreciation + optional withdrawal
   if(mt==='growth_only'){
     let bal=cap, tC=cap;
     for(let y=1;y<=yrs;y++){
       for(let m=0;m<12;m++){
         bal*=Math.pow(1+rate,1/12);
         if(addM>0){bal+=addM;tC+=addM}
+        if(inp.withVal>0){const wAmt=inp.withType==='percent'?bal*(inp.withVal/100):inp.withVal;if(bal>wAmt)bal-=wAmt}
       }
-      rows.push({y,bal,mo:0,tC});
+      const mo=bal*rate/12;
+      rows.push({y,bal,mo,tC});
       bVals.push(Math.round(bal));
     }
     return{rows,bVals};
   }
 
-  // DEFAULT: compound (HYSA, CD, Other)
+  // DEFAULT: compound (HYSA, CD, Other) with optional withdrawal
   let bal=cap, tC=cap;
   for(let y=1;y<=yrs;y++){
     for(let m=0;m<12;m++){
-      for(let d=0;d<30;d++){bal+=bal*(rate/365)}
       if(addM>0){bal+=addM;tC+=addM}
+      if(inp.withVal>0){const wAmt=inp.withType==='percent'?bal*(inp.withVal/100):inp.withVal;if(bal>wAmt)bal-=wAmt}
+      for(let d=0;d<30;d++){bal+=bal*(rate/365)}
     }
     const mo=bal*rate/12*(1-tax);
     rows.push({y,bal,mo,tC});
@@ -1573,6 +1644,12 @@ function cmp(){
     const dvEl=document.getElementById('cDiv'+side);
     const rtEl=document.getElementById('cRent'+side);
     const mtEl=document.getElementById('cMatch'+side);
+    const cwEl=document.getElementById('cWith'+side);
+    const cwtEl=document.getElementById('cWithType'+side);
+    const wnEl=document.getElementById('cWNote'+side);
+    const wv=cwEl?parseFloat(cwEl.value)||0:0;
+    const wt=cwtEl?cwtEl.value||'dollar':'dollar';
+    if(wnEl){if(wt==='percent'&&wv>0)wnEl.textContent='('+wv+'%/mo='+(wv*12).toFixed(1)+'%/yr)';else if(wt==='dollar'&&wv>0)wnEl.textContent='($'+wv+'/mo=$'+(wv*12)+'/yr)';else wnEl.textContent=''}
     const prRaw=prEl ? parseFloat(prEl.value) : NaN;
     const drRaw=drEl ? parseFloat(drEl.value) : NaN;
     return {
@@ -1587,6 +1664,7 @@ function cmp(){
       divYld: dvEl ? (parseFloat(dvEl.value)||1.5)/100 : 0.015,
       rentYld: rtEl ? (parseFloat(rtEl.value)||4)/100 : 0.04,
       match: mtEl ? parseFloat(mtEl.value)||0 : 0,
+      withVal:wv, withType:wt
     };
   }
 
@@ -1680,8 +1758,8 @@ function loadTV(section){
       isTransparent:true,showSymbolLogo:true,showFloatingTooltip:true,
       tabs:[
         {title:"Indices",symbols:[
-          {s:"FOREXCOM:SPXUSD",d:"S&P 500"},{s:"FOREXCOM:NSXUSD",d:"Nasdaq"},
-          {s:"FOREXCOM:DJI",d:"Dow Jones"}
+          {s:"AMEX:SPY",d:"S&P 500 ETF"},{s:"NASDAQ:QQQ",d:"Nasdaq 100 ETF"},
+          {s:"AMEX:DIA",d:"Dow Jones ETF"},{s:"AMEX:IWM",d:"Russell 2000"}
         ]},
         {title:"Mag 7",symbols:[
           {s:"NASDAQ:AAPL",d:"Apple"},{s:"NASDAQ:NVDA",d:"Nvidia"},{s:"NASDAQ:MSFT",d:"Microsoft"},
@@ -1690,6 +1768,19 @@ function loadTV(section){
         {title:"Crypto",symbols:[
           {s:"BITSTAMP:BTCUSD",d:"Bitcoin"},{s:"BITSTAMP:ETHUSD",d:"Ethereum"},
           {s:"BITSTAMP:XRPUSD",d:"XRP"},{s:"BINANCE:SOLUSDT",d:"Solana"}
+        ]},
+        {title:"Futures",symbols:[
+          {s:"CME_MINI:ES1!",d:"S&P 500 Futures"},{s:"CME_MINI:NQ1!",d:"Nasdaq Futures"},
+          {s:"CBOT_MINI:YM1!",d:"Dow Futures"},{s:"NYMEX:CL1!",d:"Crude Oil"},
+          {s:"TVC:GOLD",d:"Gold"},{s:"TVC:SILVER",d:"Silver"}
+        ]},
+        {title:"Bonds",symbols:[
+          {s:"TVC:US10Y",d:"US 10 Year"},{s:"TVC:US02Y",d:"US 2 Year"},
+          {s:"TVC:US30Y",d:"US 30 Year"},{s:"TVC:US05Y",d:"US 5 Year"}
+        ]},
+        {title:"Forex",symbols:[
+          {s:"FX:EURUSD",d:"EUR/USD"},{s:"FX:GBPUSD",d:"GBP/USD"},
+          {s:"FX:USDJPY",d:"USD/JPY"},{s:"FX:USDCAD",d:"USD/CAD"}
         ]}
       ]
     }))+'&_cb='+Date.now();
@@ -1734,7 +1825,7 @@ function loadTV(section){
     // Scrolling ticker tape
     $('tvTicker').src='https://s.tradingview.com/embed-widget/ticker-tape/?locale=en#'+encodeURIComponent(JSON.stringify({
       symbols:[
-        {proName:"FOREXCOM:SPXUSD",title:"S&P 500"},{proName:"FOREXCOM:NSXUSD",title:"Nasdaq"},
+        {proName:"AMEX:SPY",title:"S&P 500"},{proName:"NASDAQ:QQQ",title:"Nasdaq 100"},
         {proName:"NASDAQ:AAPL",title:"Apple"},{proName:"NASDAQ:NVDA",title:"Nvidia"},{proName:"NASDAQ:MSFT",title:"Microsoft"},
         {proName:"NASDAQ:TSLA",title:"Tesla"},{proName:"NASDAQ:META",title:"Meta"},{proName:"NASDAQ:AMZN",title:"Amazon"},
         {proName:"BITSTAMP:BTCUSD",title:"Bitcoin"},{proName:"BITSTAMP:ETHUSD",title:"Ethereum"},
