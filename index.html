@@ -322,7 +322,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
     </div>
     <nav class="nav" id="mainNav">
       <button class="nb on" onclick="switchTab('crypto',this)">⚡ Market Pulse</button>
-      <button class="nb" onclick="switchTab('income',this)">📈 Income ETF</button>
+      <button class="nb" onclick="switchTab('income',this)">💰 Income</button>
       <button class="nb" onclick="switchTab('mortgage',this)">🏠 Debt Freedom</button>
       <button class="nb" onclick="switchTab('hysa',this)">💰 Wealth Compounder</button>
       <button class="nb" onclick="switchTab('edu',this)">🎓 Education</button>
@@ -339,6 +339,14 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
      INCOME ETF CALCULATOR
 ═══════════════════════════════════════════════ -->
 <div class="panel" id="panel-income">
+
+  <div class="pulse-tabs" style="display:flex;gap:3px;background:var(--surface2);padding:3px;border-radius:var(--r);margin-bottom:1.25rem;flex-wrap:wrap">
+    <button class="pt on" onclick="sinc('etf',this)">📈 Income ETF</button>
+    <button class="pt" onclick="sinc('trading',this)">📊 Trading Calculator</button>
+    <button class="pt" onclick="sinc('salary',this)">💵 Salary Calculator</button>
+  </div>
+
+  <div id="inc-etf">
 <div class="g2">
 <div class="rc">
 
@@ -436,7 +444,83 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
   </div>
 </div>
 </div>
-</div>
+
+  </div><!-- end inc-etf -->
+
+  <!-- TRADING CALCULATOR -->
+  <div id="inc-trading" style="display:none">
+  <div class="g2">
+  <div class="rc">
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">📊 Trading Plan Calculator</span></div></div>
+      <div class="cb">
+        <div class="fl"><div class="fll">Capital investment</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="trCap" value="10000" step="1000" oninput="ctr()"></div></div>
+        <div class="fl"><div class="fll">Risk per trade <span class="flv" id="trRskL">2%</span> = <span id="trRskAmt" style="color:var(--red)">$200</span></div><div class="rr"><input type="range" id="trRsk" min="0.5" max="10" step="0.5" value="2" oninput="ctr()"><span class="rv" id="trRskD">2%</span></div></div>
+        <div class="fl"><div class="fll">Trades per day</div><div class="iw"><input type="number" id="trTPD" value="2" min="1" max="20" step="1" oninput="ctr()"></div></div>
+        <div class="fl"><div class="fll">Risk-Reward ratio <span class="flv" id="trRRL">2:1</span></div><div class="rr"><input type="range" id="trRR" min="1" max="5" step="0.5" value="2" oninput="ctr()"><span class="rv" id="trRRD">2:1</span></div></div>
+        <div class="fl"><div class="fll">Win rate <span class="flv" id="trWRL">70%</span></div><div class="rr"><input type="range" id="trWR" min="30" max="90" step="5" value="70" oninput="ctr()"><span class="rv" id="trWRD">70%</span></div></div>
+        <div class="fl"><div class="fll">Stop loss size ($)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="trSL" value="0.25" step="0.05" oninput="ctr()"></div></div>
+        <div class="fl"><div class="fll">Trading days per week</div><div class="iw"><input type="number" id="trDays" value="5" min="1" max="7" step="1" oninput="ctr()"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="rc">
+    <div class="gauto" id="trStats"></div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">Profit Projection</span></div></div>
+      <div class="cb" id="trSum"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Win vs Loss Breakdown</span></div></div>
+      <div class="cb" id="trBreak"></div>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <!-- SALARY CALCULATOR -->
+  <div id="inc-salary" style="display:none">
+  <div class="g2">
+  <div class="rc">
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">💵 Salary / Paycheck Calculator</span></div></div>
+      <div class="cb">
+        <div class="fl"><div class="fll">Pay type</div><select id="salType" onchange="csal()"><option value="yearly">Annual salary</option><option value="hourly">Hourly rate</option></select></div>
+        <div class="fl"><div class="fll" id="salRateLbl">Annual salary</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="salRate" value="85000" step="1000" oninput="csal()"></div></div>
+        <div class="fl" id="salHoursRow" style="display:none"><div class="fll">Hours per week</div><div class="iw"><input type="number" id="salHrs" value="40" min="1" max="80" step="1" oninput="csal()"></div></div>
+        <hr>
+        <div class="fl"><div class="fll">Annual raise <span class="flv" id="salRaiseL">3%</span></div><div class="rr"><input type="range" id="salRaise" min="0" max="15" step="0.5" value="3" oninput="csal()"><span class="rv" id="salRaiseD">3%</span></div></div>
+        <div class="fl"><div class="fll">Annual bonus</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="salBonus" value="0" step="500" oninput="csal()"></div></div>
+        <hr>
+        <div class="fl"><div class="fll">Federal tax rate <span class="flv" id="salFedL">22%</span></div><div class="rr"><input type="range" id="salFed" min="0" max="37" step="1" value="22" oninput="csal()"><span class="rv" id="salFedD">22%</span></div></div>
+        <div class="fl"><div class="fll">State tax rate <span class="flv" id="salStL">0%</span></div><div class="rr"><input type="range" id="salSt" min="0" max="13" step="0.5" value="0" oninput="csal()"><span class="rv" id="salStD">0%</span></div></div>
+        <div class="fl"><div class="fll">401(k) contribution <span class="flv" id="sal401L">6%</span></div><div class="rr"><input type="range" id="sal401" min="0" max="25" step="1" value="6" oninput="csal()"><span class="rv" id="sal401D">6%</span></div></div>
+        <div class="fl"><div class="fll">Health insurance (monthly)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="salIns" value="250" step="25" oninput="csal()"></div></div>
+        <div class="fl"><div class="fll">Other deductions (monthly)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="salOther" value="0" step="25" oninput="csal()"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="rc">
+    <div class="gauto" id="salStats"></div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">Paycheck Breakdown</span></div></div>
+      <div class="cb" id="salSum"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">Salary Growth Over 10 Years</span></div></div>
+      <div class="cb"><div style="position:relative;height:230px"><canvas id="salChart"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Year-by-Year Growth</span></div></div>
+      <div class="cb tscroll">
+        <table><thead><tr><th>Year</th><th>Gross Salary</th><th>Bonus</th><th>Total Comp</th><th>Taxes</th><th>Deductions</th><th>Take Home</th><th>Monthly</th></tr></thead><tbody id="salTb"></tbody></table>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+
+</div><!-- end panel-income -->
 
 <!-- ═══════════════════════════════════════════════
      DEBT FREEDOM TRACKER
@@ -1950,6 +2034,159 @@ async function autoFetchDefaults(){
   }catch(e){
     console.log('ℹ Rosalie: Yahoo Finance unavailable — using cached defaults. This is normal in some browsers.');
   }
+}
+
+// ═══════════════════ INCOME SUB-TABS ═══════════════════
+function sinc(n,btn){
+  ['etf','trading','salary'].forEach(x=>{const el=$('inc-'+x);if(el)el.style.display=x===n?'block':'none'});
+  btn.parentElement.querySelectorAll('.pt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  if(n==='trading')ctr();if(n==='salary')csal();
+}
+
+// ═══════════════════ TRADING CALCULATOR ═══════════════════
+function ctr(){
+  const cap=parseFloat($('trCap')?.value)||10000;
+  const rskPct=(parseFloat($('trRsk')?.value)||2)/100;
+  const tpd=parseInt($('trTPD')?.value)||2;
+  const rr=parseFloat($('trRR')?.value)||2;
+  const wr=(parseFloat($('trWR')?.value)||70)/100;
+  const sl=parseFloat($('trSL')?.value)||0.25;
+  const days=parseInt($('trDays')?.value)||5;
+  try{$('trRskL').textContent=Math.round(rskPct*100)+'%';$('trRskD').textContent=Math.round(rskPct*100)+'%';
+  $('trRRL').textContent=rr+':1';$('trRRD').textContent=rr+':1';
+  $('trWRL').textContent=Math.round(wr*100)+'%';$('trWRD').textContent=Math.round(wr*100)+'%';
+  $('trRskAmt').textContent='$'+Math.round(cap*rskPct).toLocaleString();
+  ur($('trRsk'),'--red');ur($('trRR'),'--green');ur($('trWR'),'--blue')}catch(e){}
+  const riskAmt=cap*rskPct;
+  const shares=sl>0?Math.floor(riskAmt/sl):0;
+  const winAmt=riskAmt*rr;
+  const lossAmt=riskAmt;
+  const winsPerDay=Math.round(tpd*wr*10)/10;
+  const lossPerDay=tpd-winsPerDay;
+  const profitPerTrade=winAmt*wr-lossAmt*(1-wr);
+  const profitDay=profitPerTrade*tpd;
+  const profitWeek=profitDay*days;
+  const profitMonth=profitWeek*4;
+  const profitYear=profitMonth*12;
+  const targetPrice=sl*rr;
+  const profitPerWin=shares*targetPrice;
+  $('trStats').innerHTML=`
+    <div class="stat sg"><div class="sl">Profit / Day</div><div class="sv">${fmtD(profitDay,0)}</div></div>
+    <div class="stat sg"><div class="sl">Profit / Week</div><div class="sv">${fmtD(profitWeek,0)}</div></div>
+    <div class="stat sg"><div class="sl">Profit / Month</div><div class="sv">${fmtD(profitMonth,0)}</div></div>
+    <div class="stat sp"><div class="sl">Profit / Year</div><div class="sv">${fmtD(profitYear,0)}</div></div>
+    <div class="stat sa"><div class="sl">Shares per Trade</div><div class="sv">${shares.toLocaleString()}</div><div class="ss">at $${sl} stop loss</div></div>
+    <div class="stat sc"><div class="sl">Profit per Win</div><div class="sv">${fmtD(profitPerWin,0)}</div><div class="ss">target $${targetPrice.toFixed(2)}</div></div>`;
+  $('trSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">${[
+    ['Capital','$'+cap.toLocaleString(),'var(--text)'],
+    ['Risk per trade ('+Math.round(rskPct*100)+'%)','$'+Math.round(riskAmt).toLocaleString(),'var(--red)'],
+    ['Reward-Risk ratio',rr+':1','var(--green)'],
+    ['Win rate',Math.round(wr*100)+'%','var(--blue)'],
+    ['Stop loss size','$'+sl,'var(--red)'],
+    ['Shares amount',shares.toLocaleString(),'var(--amber)'],
+    ['Target price move','$'+targetPrice.toFixed(2),'var(--green)'],
+    ['Win amount','$'+Math.round(winAmt).toLocaleString(),'var(--green)'],
+    ['Loss amount','-$'+Math.round(lossAmt).toLocaleString(),'var(--red)'],
+    ['Net per trade','$'+Math.round(profitPerTrade).toLocaleString(),'var(--purple)'],
+    null,
+    ['Daily ('+tpd+' trades)','$'+Math.round(profitDay).toLocaleString(),'var(--green)'],
+    ['Weekly ('+days+' days)','$'+Math.round(profitWeek).toLocaleString(),'var(--green)'],
+    ['Monthly','$'+Math.round(profitMonth).toLocaleString(),'var(--green)'],
+    ['Yearly','$'+Math.round(profitYear).toLocaleString(),'var(--purple)'],
+  ].filter(Boolean).map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div>`;
+  const wt=tpd*wr, lt=tpd*(1-wr);
+  $('trBreak').innerHTML=`<table style="width:100%;font-size:12px"><thead><tr><th></th><th style="color:var(--green)">Winning (${Math.round(wr*100)}%)</th><th style="color:var(--red)">Losing (${Math.round((1-wr)*100)}%)</th></tr></thead><tbody>
+    <tr><td style="color:var(--text3)">Trades/day</td><td style="color:var(--green);font-family:var(--font-m)">${wt.toFixed(1)}</td><td style="color:var(--red);font-family:var(--font-m)">${lt.toFixed(1)}</td></tr>
+    <tr><td style="color:var(--text3)">Risk units won/lost</td><td style="color:var(--green);font-family:var(--font-m)">+${(rr*wt).toFixed(1)}</td><td style="color:var(--red);font-family:var(--font-m)">-${lt.toFixed(1)}</td></tr>
+    <tr><td style="color:var(--text3)">$ won/lost per day</td><td style="color:var(--green);font-family:var(--font-m)">+$${Math.round(winAmt*wt).toLocaleString()}</td><td style="color:var(--red);font-family:var(--font-m)">-$${Math.round(lossAmt*lt).toLocaleString()}</td></tr>
+    <tr style="border-top:2px solid var(--border);font-weight:700"><td>Net daily profit</td><td colspan="2" style="color:var(--green);font-family:var(--font-m);font-size:14px">+$${Math.round(profitDay).toLocaleString()}</td></tr>
+  </tbody></table>`;
+}
+
+// ═══════════════════ SALARY CALCULATOR ═══════════════════
+let salCI=null;
+function csal(){
+  const type=$('salType')?.value||'yearly';
+  const rate=parseFloat($('salRate')?.value)||85000;
+  const hrs=parseFloat($('salHrs')?.value)||40;
+  const raisePct=(parseFloat($('salRaise')?.value)||3)/100;
+  const bonus=parseFloat($('salBonus')?.value)||0;
+  const fedTax=(parseFloat($('salFed')?.value)||22)/100;
+  const stTax=(parseFloat($('salSt')?.value)||0)/100;
+  const k401=(parseFloat($('sal401')?.value)||6)/100;
+  const ins=parseFloat($('salIns')?.value)||250;
+  const other=parseFloat($('salOther')?.value)||0;
+  try{$('salRaiseL').textContent=(raisePct*100).toFixed(1)+'%';$('salRaiseD').textContent=(raisePct*100).toFixed(1)+'%';
+  $('salFedL').textContent=Math.round(fedTax*100)+'%';$('salFedD').textContent=Math.round(fedTax*100)+'%';
+  $('salStL').textContent=(stTax*100).toFixed(1)+'%';$('salStD').textContent=(stTax*100).toFixed(1)+'%';
+  $('sal401L').textContent=Math.round(k401*100)+'%';$('sal401D').textContent=Math.round(k401*100)+'%';
+  ur($('salRaise'),'--green');ur($('salFed'),'--red');ur($('salSt'),'--red');ur($('sal401'),'--blue');
+  $('salHoursRow').style.display=type==='hourly'?'block':'none';
+  $('salRateLbl').textContent=type==='hourly'?'Hourly rate':'Annual salary'}catch(e){}
+  const annualGross=type==='hourly'?rate*hrs*52:rate;
+  const fica=annualGross*0.0765;
+  const fedAmt=annualGross*fedTax;
+  const stAmt=annualGross*stTax;
+  const k401Amt=annualGross*k401;
+  const insAnnual=ins*12;
+  const otherAnnual=other*12;
+  const totalTax=fedAmt+stAmt+fica;
+  const totalDed=k401Amt+insAnnual+otherAnnual;
+  const totalComp=annualGross+bonus;
+  const takeHome=totalComp-totalTax-totalDed;
+  const moTake=takeHome/12;
+  const biWeekly=takeHome/26;
+  const weekly=takeHome/52;
+  const hourlyEff=takeHome/(52*40);
+  $('salStats').innerHTML=`
+    <div class="stat sg"><div class="sl">Annual Take Home</div><div class="sv">${fmtD(takeHome,0)}</div></div>
+    <div class="stat sg"><div class="sl">Monthly Take Home</div><div class="sv">${fmtD(moTake,0)}</div></div>
+    <div class="stat sc"><div class="sl">Bi-Weekly Check</div><div class="sv">${fmtD(biWeekly,0)}</div></div>
+    <div class="stat sb"><div class="sl">Weekly</div><div class="sv">${fmtD(weekly,0)}</div></div>
+    <div class="stat sa"><div class="sl">Effective Hourly</div><div class="sv">${fmtD(hourlyEff,2)}/hr</div></div>
+    <div class="stat sr"><div class="sl">Total Taxes</div><div class="sv">${fmtD(totalTax,0)}</div><div class="ss">${((totalTax/annualGross)*100).toFixed(1)}% effective</div></div>`;
+  $('salSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">${[
+    ['Gross salary','$'+Math.round(annualGross).toLocaleString(),'var(--text)'],
+    bonus>0?['Bonus','$'+Math.round(bonus).toLocaleString(),'var(--green)']:null,
+    ['Total compensation','$'+Math.round(totalComp).toLocaleString(),'var(--text)'],
+    null,
+    ['Federal tax ('+Math.round(fedTax*100)+'%)','-$'+Math.round(fedAmt).toLocaleString(),'var(--red)'],
+    ['State tax ('+(stTax*100).toFixed(1)+'%)','-$'+Math.round(stAmt).toLocaleString(),'var(--red)'],
+    ['FICA / Social Security (7.65%)','-$'+Math.round(fica).toLocaleString(),'var(--red)'],
+    ['401(k) ('+Math.round(k401*100)+'%)','-$'+Math.round(k401Amt).toLocaleString(),'var(--blue)'],
+    ins>0?['Health insurance','-$'+Math.round(insAnnual).toLocaleString(),'var(--amber)']:null,
+    other>0?['Other deductions','-$'+Math.round(otherAnnual).toLocaleString(),'var(--text3)']:null,
+    null,
+    ['Take home pay','$'+Math.round(takeHome).toLocaleString()+'/yr','var(--green)'],
+    ['Monthly','$'+Math.round(moTake).toLocaleString(),'var(--green)'],
+    ['Bi-weekly check','$'+Math.round(biWeekly).toLocaleString(),'var(--green)'],
+    ['Weekly','$'+Math.round(weekly).toLocaleString(),'var(--green)'],
+    ['Effective hourly','$'+hourlyEff.toFixed(2)+'/hr','var(--green)'],
+  ].filter(Boolean).map(([l,v,c])=>l===null?'':(`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`)).join('')}</div>`;
+  // Growth chart
+  const isDk=document.documentElement.getAttribute('data-theme')==='dark';
+  const labels=[],grossVals=[],takeVals=[];
+  let g=annualGross;
+  for(let y=0;y<=10;y++){
+    labels.push(y===0?'Now':'Yr '+y);
+    grossVals.push(Math.round(g+bonus));
+    const t=g+bonus-(g*fedTax)-(g*stTax)-(g*0.0765)-(g*k401)-insAnnual-otherAnnual;
+    takeVals.push(Math.round(t));
+    g*=(1+raisePct);
+  }
+  if(salCI)salCI.destroy();
+  salCI=new Chart($('salChart').getContext('2d'),{type:'line',data:{labels,datasets:[
+    {label:'Gross',data:grossVals,borderColor:isDk?'#60a5fa':'#1d4ed8',backgroundColor:isDk?'rgba(96,165,250,.08)':'rgba(29,78,216,.06)',fill:true,tension:.4,pointRadius:3},
+    {label:'Take Home',data:takeVals,borderColor:isDk?'#4ade80':'#16a34a',backgroundColor:'transparent',tension:.4,pointRadius:3,borderDash:[5,3]}
+  ]},options:cO()});
+  // Year table
+  g=annualGross;
+  $('salTb').innerHTML=Array.from({length:10},(_,i)=>{
+    const y=i+1;const gr=g*(1+raisePct);g=gr;
+    const tc=gr+bonus;const tx=gr*fedTax+gr*stTax+gr*0.0765;const dd=gr*k401+insAnnual+otherAnnual;const th=tc-tx-dd;
+    return `<tr><td style="color:var(--text3)">Yr ${y}</td><td style="font-family:var(--font-m)">${fmtD(gr,0)}</td><td style="color:var(--amber);font-family:var(--font-m)">${bonus>0?fmtD(bonus,0):'—'}</td><td style="font-family:var(--font-m)">${fmtD(tc,0)}</td><td style="color:var(--red);font-family:var(--font-m)">${fmtD(tx,0)}</td><td style="color:var(--blue);font-family:var(--font-m)">${fmtD(dd,0)}</td><td style="color:var(--green);font-family:var(--font-m);font-weight:500">${fmtD(th,0)}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(th/12,0)}/mo</td></tr>`;
+  }).join('');
 }
 
 // ═══════════════════ CAPITAL DISTRIBUTION ═══════════════════
