@@ -344,6 +344,8 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
     <button class="pt on" onclick="sinc('etf',this)">📈 Income ETF</button>
     <button class="pt" onclick="sinc('trading',this)">📊 Trading Calculator</button>
     <button class="pt" onclick="sinc('salary',this)">💵 Salary Calculator</button>
+    <button class="pt" onclick="sinc('budget',this)">🧾 Budget Planner</button>
+    <button class="pt" onclick="sinc('capdist',this)">💰 Capital Distribution</button>
   </div>
 
   <div id="inc-etf">
@@ -486,7 +488,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
       <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">💵 Salary / Paycheck Calculator</span></div></div>
       <div class="cb">
         <div class="fl"><div class="fll">Pay type</div><select id="salType" onchange="csal()"><option value="yearly">Annual salary</option><option value="hourly">Hourly rate</option></select></div>
-        <div class="fl"><div class="fll" id="salRateLbl">Annual salary</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="salRate" value="85000" step="1000" oninput="csal()"></div></div>
+        <div class="fl"><div class="fll" id="salRateLbl">Annual salary</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="salRate" value="60000" step="1000" oninput="csal()"></div></div>
         <div class="fl" id="salHoursRow" style="display:none"><div class="fll">Hours per week</div><div class="iw"><input type="number" id="salHrs" value="40" min="1" max="80" step="1" oninput="csal()"></div></div>
         <hr>
         <div class="fl"><div class="fll">Annual raise <span class="flv" id="salRaiseL">3%</span></div><div class="rr"><input type="range" id="salRaise" min="0" max="15" step="0.5" value="3" oninput="csal()"><span class="rv" id="salRaiseD">3%</span></div></div>
@@ -517,6 +519,78 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
       </div>
     </div>
   </div>
+  </div>
+  </div>
+
+
+  <!-- BUDGET PLANNER -->
+  <div id="inc-budget" style="display:none">
+  <div class="g2">
+  <div class="rc">
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">🧾 Monthly Budget Planner</span></div></div>
+      <div class="cb">
+        <div class="fl"><div class="fll">Monthly take-home pay</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budIncome" value="3800" step="100" oninput="cbud()"></div></div>
+        <hr>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text4);margin-bottom:8px">🏠 Needs (recommended 50%)</div>
+        <div class="fl"><div class="fll">Housing (rent/mortgage) <span id="budHouseRec" style="font-size:9px;color:var(--green)"></span></div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budHouse" value="0" step="50" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Utilities (electric, water, internet)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budUtil" value="0" step="25" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Groceries</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budFood" value="0" step="25" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Transportation (car, gas, insurance)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budTrans" value="0" step="25" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Insurance (health, life)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budIns" value="0" step="25" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Debt payments (loans, cards)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budDebt" value="0" step="25" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Phone</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budPhone" value="0" step="10" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Childcare / Education</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budChild" value="0" step="50" oninput="cbud()"></div></div>
+        <hr>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text4);margin-bottom:8px">🎯 Wants (recommended 30%)</div>
+        <div class="fl"><div class="fll">Dining out</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budDine" value="0" step="25" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Entertainment / Subscriptions</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budEnt" value="0" step="10" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Shopping / Personal care</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budShop" value="0" step="25" oninput="cbud()"></div></div>
+        <div class="fl"><div class="fll">Other wants</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budOther" value="0" step="25" oninput="cbud()"></div></div>
+        <hr>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text4);margin-bottom:8px">💰 Savings (recommended 20%)</div>
+        <div class="fl"><div class="fll">Savings / Investments <span id="budSaveRec" style="font-size:9px;color:var(--green)"></span></div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="budSave" value="0" step="50" oninput="cbud()"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="rc">
+    <div class="gauto" id="budStats"></div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">Budget Breakdown</span></div></div>
+      <div class="cb" id="budSum"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">50/30/20 Rule Check</span></div></div>
+      <div class="cb" id="budRule"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Spending by Category</span></div></div>
+      <div class="cb"><div style="position:relative;height:250px"><canvas id="budChart"></canvas></div></div>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <!-- CAPITAL DISTRIBUTION (moved from Education) -->
+  <div id="inc-capdist" style="display:none">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">💰 Capital Distribution Calculator</span></div></div>
+      <div class="cb">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:1rem;line-height:1.7">Enter your investment capital and age to see exactly how to distribute it across risk levels — from FDIC-protected savings to speculative assets.</div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+          <div class="fl" style="flex:1;min-width:200px;margin-bottom:0">
+            <div class="fll">Capital to invest</div>
+            <div class="iw"><span class="ip">$</span><input type="number" class="pp" id="edCap" value="10000" min="100" step="500" oninput="calcDist()"></div>
+          </div>
+          <div class="fl" style="flex:1;min-width:200px;margin-bottom:0">
+            <div class="fll">Your age <span class="flv" id="edAgeL">35</span></div>
+            <div class="rr"><input type="range" id="edAge" min="18" max="70" value="35" oninput="calcDist()"><span class="rv" id="edAgeD">35</span></div>
+          </div>
+        </div>
+        <div id="edResult"></div>
+      </div>
+    </div>
   </div>
   </div>
 
@@ -581,7 +655,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
   <div class="g2"><div class="rc">
     <div class="card"><div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--purple)"></div><span class="ct">💳 How Much Can You Afford?</span></div></div><div class="cb">
       <div class="fl"><div class="fll">Loan type</div><select id="bType" onchange="cbuy()"><option value="housing">🏠 Housing / Mortgage</option><option value="car">🚗 Car / Auto Loan</option><option value="personal">💰 Personal Loan</option><option value="cards">💳 Credit Card Payoff</option></select></div>
-      <div class="fl"><div class="fll">Annual gross income</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="bIncome" value="85000" step="5000" oninput="cbuy()"></div></div>
+      <div class="fl"><div class="fll">Annual gross income</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="bIncome" value="60000" step="5000" oninput="cbuy()"></div></div>
       <div class="fl"><div class="fll">Monthly debts (other loans/cards)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="bDebts" value="500" step="50" oninput="cbuy()"></div></div>
       <div class="fl"><div class="fll">Down payment available</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="bDown" value="60000" step="5000" oninput="cbuy()"></div></div>
       <div class="fl"><div class="fll">Credit score <span class="flv" id="bScL">720</span></div><div class="rr"><input type="range" id="bSc" min="500" max="850" step="10" value="720" oninput="cbuy()"><span class="rv" id="bScD">720</span></div></div>
@@ -1017,8 +1091,8 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
         <tr><td>See what's moving in the market right now</td><td style="color:var(--cyan)">Market Pulse > News & Sentiment</td><td>🟢</td></tr>
         <tr><td>Check if Bitcoin or XRP is pumping</td><td style="color:var(--cyan)">Market Pulse > Crypto Heatmap / Detail</td><td>🟢</td></tr>
         <tr><td>Find today's top stock gainers/losers</td><td style="color:var(--cyan)">Market Pulse > Top Movers</td><td>🟢</td></tr>
-        <tr><td>Calculate MAGY weekly income & DRIP projection</td><td style="color:var(--green)">Income ETF Calculator</td><td>🟠</td></tr>
-        <tr><td>Compare MAGY vs JEPI vs QQQI</td><td style="color:var(--green)">Income ETF > Quick load buttons</td><td>🟠</td></tr>
+        <tr><td>Calculate MAGY weekly income & DRIP projection</td><td style="color:var(--green)">Income > Income ETF</td><td>🟠</td></tr>
+        <tr><td>Compare MAGY vs JEPI vs QQQI</td><td style="color:var(--green)">Income > ETF Quick load</td><td>🟠</td></tr>
         <tr><td>See how fast I can pay off my mortgage</td><td style="color:var(--blue)">Debt Freedom > Mortgage Payoff</td><td>🟢</td></tr>
         <tr><td>Analyze a rental property deal</td><td style="color:var(--blue)">Debt Freedom > Rental Property</td><td>🟡</td></tr>
         <tr><td>Find out how much house I can afford</td><td style="color:var(--blue)">Debt Freedom > Buying Power</td><td>🟢</td></tr>
@@ -1033,29 +1107,6 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
 
   <!-- DISCLAIMER -->
 
-  <!-- CAPITAL DISTRIBUTION CALCULATOR -->
-  <div class="card" style="margin-bottom:.75rem">
-    <details>
-      <summary style="padding:1rem 1.25rem;cursor:pointer;display:flex;align-items:center;gap:10px;list-style:none">
-        <span style="font-size:16px">💰</span>
-        <div style="flex:1"><div style="font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--green)">Capital Distribution Calculator</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Enter your capital and age — get exact dollar amounts per risk level</div></div>
-        <span style="color:var(--text4);font-size:14px;transition:transform .2s" class="acc-arrow">▶</span>
-      </summary>
-      <div style="padding:0 1.25rem 1.25rem;font-size:12px;line-height:1.8;color:var(--text2)">
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
-          <div class="fl" style="flex:1;min-width:200px;margin-bottom:0">
-            <div class="fll">Capital to invest</div>
-            <div class="iw"><span class="ip">$</span><input type="number" class="pp" id="edCap" value="10000" min="100" step="500" oninput="calcDist()"></div>
-          </div>
-          <div class="fl" style="flex:1;min-width:200px;margin-bottom:0">
-            <div class="fll">Your age <span class="flv" id="edAgeL">35</span></div>
-            <div class="rr"><input type="range" id="edAge" min="18" max="70" value="35" oninput="calcDist()"><span class="rv" id="edAgeD">35</span></div>
-          </div>
-        </div>
-        <div id="edResult"></div>
-      </div>
-    </details>
-  </div>
 
   <div class="abox abox-a" style="font-size:11px;line-height:1.7">
     <strong>Disclaimer:</strong> Rosalie Financial Desk is an educational calculator tool. It does not provide financial advice, buy/sell recommendations, or guarantees of returns. Past performance does not guarantee future results. All investments carry risk including loss of principal. Consult a licensed financial advisor before making investment decisions. FDIC insurance covers bank deposits only — not stocks, ETFs, crypto, or real estate. The allocations shown are general guidelines, not personalized advice.
@@ -1251,7 +1302,7 @@ function cbuy(){
   const loanType=$('bType')?.value||'housing';
   const tl={housing:'Home',car:'Vehicle',personal:'Loan',cards:'Balance'};
   const typeLbl=tl[loanType]||'Loan';
-  const income=parseFloat($('bIncome')?.value)||85000;
+  const income=parseFloat($('bIncome')?.value)||60000;
   const debts=parseFloat($('bDebts')?.value)||500;
   const down=parseFloat($('bDown')?.value)||60000;
   const score=parseInt($('bSc')?.value)||720;
@@ -2038,10 +2089,10 @@ async function autoFetchDefaults(){
 
 // ═══════════════════ INCOME SUB-TABS ═══════════════════
 function sinc(n,btn){
-  ['etf','trading','salary'].forEach(x=>{const el=$('inc-'+x);if(el)el.style.display=x===n?'block':'none'});
+  ['etf','trading','salary','budget','capdist'].forEach(x=>{const el=$('inc-'+x);if(el)el.style.display=x===n?'block':'none'});
   btn.parentElement.querySelectorAll('.pt').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  if(n==='trading')ctr();if(n==='salary')csal();
+  if(n==='trading')ctr();if(n==='salary')csal();if(n==='budget')cbud();if(n==='capdist')calcDist();
 }
 
 // ═══════════════════ TRADING CALCULATOR ═══════════════════
@@ -2108,7 +2159,7 @@ function ctr(){
 let salCI=null;
 function csal(){
   const type=$('salType')?.value||'yearly';
-  const rate=parseFloat($('salRate')?.value)||85000;
+  const rate=parseFloat($('salRate')?.value)||60000;
   const hrs=parseFloat($('salHrs')?.value)||40;
   const raisePct=(parseFloat($('salRaise')?.value)||3)/100;
   const bonus=parseFloat($('salBonus')?.value)||0;
@@ -2187,6 +2238,102 @@ function csal(){
     const tc=gr+bonus;const tx=gr*fedTax+gr*stTax+gr*0.0765;const dd=gr*k401+insAnnual+otherAnnual;const th=tc-tx-dd;
     return `<tr><td style="color:var(--text3)">Yr ${y}</td><td style="font-family:var(--font-m)">${fmtD(gr,0)}</td><td style="color:var(--amber);font-family:var(--font-m)">${bonus>0?fmtD(bonus,0):'—'}</td><td style="font-family:var(--font-m)">${fmtD(tc,0)}</td><td style="color:var(--red);font-family:var(--font-m)">${fmtD(tx,0)}</td><td style="color:var(--blue);font-family:var(--font-m)">${fmtD(dd,0)}</td><td style="color:var(--green);font-family:var(--font-m);font-weight:500">${fmtD(th,0)}</td><td style="color:var(--green);font-family:var(--font-m)">${fmtD(th/12,0)}/mo</td></tr>`;
   }).join('');
+}
+
+// ═══════════════════ BUDGET PLANNER ═══════════════════
+let budCI=null;
+function cbud(){
+  const income=parseFloat($('budIncome')?.value)||3800;
+  const house=parseFloat($('budHouse')?.value)||0;
+  const util=parseFloat($('budUtil')?.value)||0;
+  const food=parseFloat($('budFood')?.value)||0;
+  const trans=parseFloat($('budTrans')?.value)||0;
+  const ins=parseFloat($('budIns')?.value)||0;
+  const debt=parseFloat($('budDebt')?.value)||0;
+  const phone=parseFloat($('budPhone')?.value)||0;
+  const child=parseFloat($('budChild')?.value)||0;
+  const dine=parseFloat($('budDine')?.value)||0;
+  const ent=parseFloat($('budEnt')?.value)||0;
+  const shop=parseFloat($('budShop')?.value)||0;
+  const other=parseFloat($('budOther')?.value)||0;
+  const save=parseFloat($('budSave')?.value)||0;
+  // Recommendations
+  const recHouse=Math.round(income*0.28);
+  const recSave=Math.round(income*0.20);
+  try{$('budHouseRec').textContent='(recommended: $'+recHouse.toLocaleString()+')';
+  $('budSaveRec').textContent='(recommended: $'+recSave.toLocaleString()+')'}catch(e){}
+  const needs=house+util+food+trans+ins+debt+phone+child;
+  const wants=dine+ent+shop+other;
+  const totalSpent=needs+wants+save;
+  const remaining=income-totalSpent;
+  const needsPct=income>0?(needs/income*100):0;
+  const wantsPct=income>0?(wants/income*100):0;
+  const savePct=income>0?(save/income*100):0;
+  const remPct=income>0?(remaining/income*100):0;
+  $('budStats').innerHTML=`
+    <div class="stat ${remaining>=0?'sg':'sr'}"><div class="sl">Remaining</div><div class="sv">${remaining>=0?'':'-'}$${Math.abs(Math.round(remaining)).toLocaleString()}</div><div class="ss">${remaining>=0?'surplus':'over budget!'}</div></div>
+    <div class="stat sb"><div class="sl">Needs</div><div class="sv">$${Math.round(needs).toLocaleString()}</div><div class="ss">${needsPct.toFixed(0)}% of income</div></div>
+    <div class="stat sa"><div class="sl">Wants</div><div class="sv">$${Math.round(wants).toLocaleString()}</div><div class="ss">${wantsPct.toFixed(0)}% of income</div></div>
+    <div class="stat sc"><div class="sl">Savings</div><div class="sv">$${Math.round(save).toLocaleString()}</div><div class="ss">${savePct.toFixed(0)}% of income</div></div>
+    <div class="stat sp"><div class="sl">Annual Savings</div><div class="sv">$${Math.round(save*12).toLocaleString()}</div><div class="ss">per year</div></div>
+    <div class="stat ${savePct>=20?'sg':savePct>=10?'sa':'sr'}"><div class="sl">Savings Rate</div><div class="sv">${savePct.toFixed(1)}%</div><div class="ss">${savePct>=20?'on track ✓':savePct>=10?'needs work':'too low ✗'}</div></div>`;
+  const items=[
+    ['Housing',house,'var(--blue)'],['Utilities',util,'var(--blue)'],['Groceries',food,'var(--blue)'],
+    ['Transportation',trans,'var(--blue)'],['Insurance',ins,'var(--blue)'],['Debt payments',debt,'var(--red)'],
+    ['Phone',phone,'var(--blue)'],['Childcare',child,'var(--blue)'],
+    ['Dining out',dine,'var(--amber)'],['Entertainment',ent,'var(--amber)'],['Shopping',shop,'var(--amber)'],['Other',other,'var(--amber)'],
+    ['Savings',save,'var(--green)']
+  ].filter(([,v])=>v>0);
+  $('budSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:3px">
+    ${items.map(([l,v,c])=>{const pct=income>0?(v/income*100):0;return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)">
+      <span style="flex:1;font-size:12px;color:var(--text3)">${l}</span>
+      <div style="width:120px;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="width:${Math.min(100,pct)}%;height:100%;background:${c};border-radius:99px"></div></div>
+      <span style="font-family:var(--font-m);font-size:12px;color:${c};min-width:55px;text-align:right">$${Math.round(v).toLocaleString()}</span>
+      <span style="font-family:var(--font-m);font-size:10px;color:var(--text4);min-width:35px;text-align:right">${pct.toFixed(0)}%</span>
+    </div>`}).join('')}
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;border-top:2px solid var(--border);font-size:13px">
+      <span>Remaining</span>
+      <span style="font-family:var(--font-m);color:${remaining>=0?'var(--green)':'var(--red)'}">${remaining>=0?'+':'-'}$${Math.abs(Math.round(remaining)).toLocaleString()}/mo</span>
+    </div>
+  </div>`;
+  // 50/30/20 Rule
+  $('budRule').innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
+    ${[['🏠 Needs','50%',needsPct,50,'var(--blue)',needs],['🎯 Wants','30%',wantsPct,30,'var(--amber)',wants],['💰 Savings','20%',savePct,20,'var(--green)',save]].map(([l,target,pct,max,c,amt])=>`<div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text3)">${l} <span style="color:var(--text4)">target ${target}</span></span><span style="font-family:var(--font-m);font-weight:600;color:${pct<=max+5?c:'var(--red)'}">${pct.toFixed(0)}% ($${Math.round(amt).toLocaleString()})</span></div>
+      <div style="position:relative;height:10px;background:var(--surface2);border-radius:99px;overflow:hidden">
+        <div style="position:absolute;left:${Math.min(98,max)}%;top:0;bottom:0;width:2px;background:var(--text4);opacity:.5"></div>
+        <div style="width:${Math.min(100,pct)}%;height:100%;background:${pct<=max+5?c:'var(--red)'};border-radius:99px;transition:width .3s"></div>
+      </div>
+    </div>`).join('')}
+    <div class="abox ${needsPct<=55&&wantsPct<=35&&savePct>=15?'abox-g':savePct>=10?'abox-b':'abox-r'}" style="font-size:11px">${
+      needsPct<=55&&wantsPct<=35&&savePct>=15
+      ?'<strong>✅ Healthy budget</strong> — Your spending follows the 50/30/20 guideline. You save $'+Math.round(save*12).toLocaleString()+'/yr which compounds to $'+Math.round(save*12*10*1.08).toLocaleString()+' in 10yr at 8% returns.'
+      :savePct<10
+      ?'<strong>⚠ Low savings</strong> — You save only '+savePct.toFixed(0)+'% of income. Target at least 20% ($'+recSave.toLocaleString()+'/mo). Try reducing '+( wantsPct>35?'wants':'housing/needs')+' spending.'
+      :'<strong>Getting there</strong> — Savings at '+savePct.toFixed(0)+'%. Increase to 20% ($'+recSave.toLocaleString()+'/mo) by trimming '+(wantsPct>35?'wants ($'+Math.round(wants-income*0.30).toLocaleString()+' over)':'needs ($'+Math.round(needs-income*0.50).toLocaleString()+' over)')+'.'
+    }</div>
+  </div>`;
+  // Chart
+  const isDk=document.documentElement.getAttribute('data-theme')==='dark';
+  const catLabels=[],catValues=[],catColors=[];
+  if(house>0){catLabels.push('Housing');catValues.push(house);catColors.push(isDk?'#3b82f6':'#1d4ed8')}
+  if(util>0){catLabels.push('Utilities');catValues.push(util);catColors.push(isDk?'#60a5fa':'#2563eb')}
+  if(food>0){catLabels.push('Groceries');catValues.push(food);catColors.push(isDk?'#818cf8':'#4f46e5')}
+  if(trans>0){catLabels.push('Transport');catValues.push(trans);catColors.push(isDk?'#a78bfa':'#7c3aed')}
+  if(ins>0){catLabels.push('Insurance');catValues.push(ins);catColors.push(isDk?'#c084fc':'#9333ea')}
+  if(debt>0){catLabels.push('Debt');catValues.push(debt);catColors.push(isDk?'#f87171':'#dc2626')}
+  if(phone>0){catLabels.push('Phone');catValues.push(phone);catColors.push(isDk?'#38bdf8':'#0284c7')}
+  if(child>0){catLabels.push('Childcare');catValues.push(child);catColors.push(isDk?'#2dd4bf':'#0d9488')}
+  if(dine>0){catLabels.push('Dining');catValues.push(dine);catColors.push(isDk?'#fbbf24':'#d97706')}
+  if(ent>0){catLabels.push('Entertain');catValues.push(ent);catColors.push(isDk?'#fb923c':'#ea580c')}
+  if(shop>0){catLabels.push('Shopping');catValues.push(shop);catColors.push(isDk?'#f472b6':'#db2777')}
+  if(other>0){catLabels.push('Other');catValues.push(other);catColors.push(isDk?'#94a3b8':'#64748b')}
+  if(save>0){catLabels.push('Savings');catValues.push(save);catColors.push(isDk?'#4ade80':'#16a34a')}
+  if(remaining>0){catLabels.push('Unallocated');catValues.push(remaining);catColors.push(isDk?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.05)')}
+  if(budCI)budCI.destroy();
+  if(catValues.length>0){
+    budCI=new Chart($('budChart').getContext('2d'),{type:'doughnut',data:{labels:catLabels,datasets:[{data:catValues,backgroundColor:catColors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:isDk?'#94a3b8':'#64748b',font:{size:10,family:'IBM Plex Sans'},padding:8,boxWidth:12}}}}});
+  }
 }
 
 // ═══════════════════ CAPITAL DISTRIBUTION ═══════════════════
