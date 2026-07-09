@@ -604,6 +604,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
     <button class="pt on" onclick="sdf('payoff',this)">📋 Mortgage Payoff</button>
     <button class="pt" onclick="sdf('rental',this)">🏘 Rental Property</button>
     <button class="pt" onclick="sdf('buying',this)">💳 Buying Power</button>
+    <button class="pt" onclick="sdf('loanpay',this)">📝 Loan Payoff</button>
     <a href="https://www.rentometer.com" target="_blank" rel="noopener" class="pt" style="text-decoration:none;color:var(--cyan)">🔗 Rentometer</a>
   </div>
   <div id="df-payoff">
@@ -654,7 +655,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
   <div id="df-buying" style="display:none">
   <div class="g2"><div class="rc">
     <div class="card"><div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--purple)"></div><span class="ct">💳 How Much Can You Afford?</span></div></div><div class="cb">
-      <div class="fl"><div class="fll">Loan type</div><select id="bType" onchange="cbuy()"><option value="housing">🏠 Housing / Mortgage</option><option value="car">🚗 Car / Auto Loan</option><option value="personal">💰 Personal Loan</option><option value="cards">💳 Credit Card Payoff</option></select></div>
+      <div class="fl"><div class="fll">Loan type</div><select id="bType" onchange="cbuy()"><option value="housing">🏠 Housing / Mortgage</option><option value="car">🚗 Car / Auto Loan</option><option value="personal">💰 Personal Loan</option><option value="cards">💳 Credit Card</option></select></div>
       <div class="fl"><div class="fll">Annual gross income</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="bIncome" value="60000" step="5000" oninput="cbuy()"></div></div>
       <div class="fl"><div class="fll">Monthly debts (other loans/cards)</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="bDebts" value="500" step="50" oninput="cbuy()"></div></div>
       <div class="fl"><div class="fll">Down payment available</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="bDown" value="60000" step="5000" oninput="cbuy()"></div></div>
@@ -671,6 +672,41 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
     <div class="card"><div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--purple)"></div><span class="ct">Affordability Breakdown</span></div></div><div class="cb" id="bSum"></div></div>
     <div class="card"><div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--green)"></div><span class="ct">Buying Power by Score</span></div></div><div class="cb"><div style="position:relative;height:230px"><canvas id="bChart"></canvas></div></div></div>
   </div></div></div>
+
+  <!-- LOAN PAYOFF CALCULATOR -->
+  <div id="df-loanpay" style="display:none">
+  <div class="g2">
+  <div class="rc">
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--purple)"></div><span class="ct">📝 Loan Payoff Calculator</span></div></div>
+      <div class="cb">
+        <div class="fl"><div class="fll">Loan amount</div><div class="iw"><span class="ip">$</span><input type="number" class="pp" id="lpAmt" value="30000" step="1000" oninput="cloan()"></div></div>
+        <div class="fl"><div class="fll">Loan term (months) <span class="flv" id="lpTmL">12</span></div><div class="rr"><input type="range" id="lpTm" min="1" max="360" step="1" value="12" oninput="cloan()"><span class="rv" id="lpTmD">12</span></div></div>
+        <div class="fl"><div class="fll">Annual interest rate <span class="flv" id="lpRtL">12.00%</span></div><div class="rr"><input type="range" id="lpRt" min="0.5" max="36" step="0.25" value="12" oninput="cloan()"><span class="rv" id="lpRtD">12%</span></div></div>
+        <div class="fl"><div class="fll">Repayment frequency</div><select id="lpFreq" onchange="cloan()"><option value="monthly">Monthly</option><option value="fortnightly">Fortnightly (every 2 weeks)</option><option value="weekly">Weekly</option></select></div>
+      </div>
+    </div>
+  </div>
+  <div class="rc">
+    <div class="gauto" id="lpStats"></div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--purple)"></div><span class="ct">Repayment Summary</span></div></div>
+      <div class="cb" id="lpSum"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--blue)"></div><span class="ct">Balance Over Time</span></div></div>
+      <div class="cb"><div style="position:relative;height:230px"><canvas id="lpChart"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">Repayment Schedule</span></div></div>
+      <div class="cb tscroll">
+        <table><thead><tr><th>#</th><th>Balance</th><th>Principal</th><th>Interest</th><th>Payment</th><th>Total Interest</th></tr></thead><tbody id="lpTb"></tbody></table>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+
 </div>
 
 
@@ -841,7 +877,7 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
   <!-- CRYPTO HEATMAP -->
   <div id="pp-cheatmap" style="display:none">
     <div class="card" style="margin-bottom:1.25rem">
-      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">₿ Crypto Heatmap — Top Coins by Market Cap</span></div></div>
+      <div class="ch"><div class="ch-left"><div class="cdot" style="background:var(--amber)"></div><span class="ct">₿ Crypto Heatmap — Top Coins by Market Cap</span></div><a href="https://coinmarketcap.com/charts/" target="_blank" rel="noopener" style="font-size:9px;color:var(--amber);text-decoration:none;padding:3px 7px;border:1px solid var(--amber);border-radius:var(--r)">📊 CoinMarketCap (prices + %)</a></div>
       <div class="cb" style="padding:0">
         <div class="tradingview-widget-container" style="height:550px">
           <iframe id="tvCryptoHeat" style="width:100%;height:100%;border:none" loading="lazy"></iframe>
@@ -1289,13 +1325,62 @@ function ci(){
     `<div class="abox abox-r" style="margin-top:.75rem"><strong>⚠ Capital at risk</strong> — Price erosion outpacing income. Try DRIP strategy or reduce price drift.</div>`;
 }
 
-function sdf(n,btn){['payoff','rental','buying'].forEach(x=>{const el=$('df-'+x);if(el)el.style.display=x===n?'block':'none'});btn.parentElement.querySelectorAll('.pt').forEach(b=>{if(b.tagName==='BUTTON')b.classList.remove('on')});btn.classList.add('on');if(n==='payoff')cpay();if(n==='rental')cm();if(n==='buying')cbuy()}
+function sdf(n,btn){['payoff','rental','buying','loanpay'].forEach(x=>{const el=$('df-'+x);if(el)el.style.display=x===n?'block':'none'});btn.parentElement.querySelectorAll('.pt').forEach(b=>{if(b.tagName==='BUTTON')b.classList.remove('on')});btn.classList.add('on');if(n==='payoff')cpay();if(n==='rental')cm();if(n==='buying')cbuy();if(n==='loanpay')cloan()}
 let pCI=null;
 function cpay(){const hv=parseFloat($('pHV')?.value)||500000,bal=parseFloat($('pBal')?.value)||450000,rate=(parseFloat($('pR')?.value)||5)/100/12,term=parseInt($('pT')?.value||30)*12,extra=parseFloat($('pEx')?.value)||0,lump=parseFloat($('pLp')?.value)||0;try{$('pRL').textContent=(rate*1200).toFixed(2)+'%';$('pRD').textContent=(rate*1200).toFixed(2)+'%';$('pTL').textContent=$('pT')?.value;$('pTD').textContent=$('pT')?.value;ur($('pR'),'--blue');ur($('pT'),'--blue')}catch(e){}const base=bal*rate/(1-Math.pow(1+rate,-term)),total=base+extra;let b=bal,ti=0,bR=[];for(let m=0;m<term&&b>0;m++){const i=b*rate,pr=Math.min(base-i,b);ti+=i;b=Math.max(0,b-pr);bR.push(b)}const bTI=ti;b=bal-lump;ti=0;let mos=0,yR=[],yB=[bal-lump],yBB=[bal];let yi=0,yp=0;while(b>0&&mos<term){const i=b*rate,pr=Math.min(total-i,b);yi+=i;yp+=pr;ti+=i;b=Math.max(0,b-pr);mos++;if(mos%12===0||b<=0){const yr=Math.ceil(mos/12),eq=hv-b;yR.push({yr,pmt:total,prin:yp,int:yi,bal:b,eq,eqP:eq/hv*100});yB.push(Math.round(b));yBB.push(Math.round(bR[Math.min(mos-1,bR.length-1)]||0));yi=0;yp=0}}const iSv=bTI-ti,py=Math.floor(mos/12),pm=mos%12,ts=term-mos;$('pStats').innerHTML=`<div class="stat sb"><div class="sl">Payment</div><div class="sv">$${Math.round(base).toLocaleString()}</div></div><div class="stat ${extra>0?'sg':'sb'}"><div class="sl">With extra</div><div class="sv">$${Math.round(total).toLocaleString()}</div></div><div class="stat sa"><div class="sl">Payoff</div><div class="sv">${py}yr ${pm}mo</div><div class="ss">${ts>0?'saves '+Math.floor(ts/12)+'yr':'standard'}</div></div><div class="stat ${iSv>0?'sg':'sr'}"><div class="sl">Interest Saved</div><div class="sv">$${Math.round(Math.max(0,iSv)).toLocaleString()}</div></div><div class="stat sr"><div class="sl">Total Interest</div><div class="sv">$${Math.round(ti).toLocaleString()}</div></div><div class="stat sp"><div class="sl">Equity</div><div class="sv">$${Math.round(hv-bal).toLocaleString()}</div></div>`;$('pSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">${[['Loan balance','$'+bal.toLocaleString()],['Base payment','$'+base.toFixed(2)],['With extra','$'+total.toFixed(2)],['Payoff',py+' yrs '+pm+' mos'],['Time saved',ts>0?Math.floor(ts/12)+'yr '+ts%12+'mo':'—'],['Interest saved',iSv>0?'$'+Math.round(iSv).toLocaleString():'—'],['Total interest','$'+Math.round(ti).toLocaleString()],['LTV',(bal/hv*100).toFixed(1)+'%'],['Equity','$'+Math.round(hv-bal).toLocaleString()]].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500">${v}</span></div>`).join('')}</div>`;const isDk=document.documentElement.getAttribute('data-theme')==='dark';if(pCI)pCI.destroy();pCI=new Chart($('pChart').getContext('2d'),{type:'line',data:{labels:['Now',...yR.map(r=>'Yr '+r.yr)],datasets:[{label:'With extra',data:yB,borderColor:isDk?'#4ade80':'#16a34a',backgroundColor:isDk?'rgba(74,222,128,.08)':'rgba(22,163,74,.06)',fill:true,tension:.4,pointRadius:3},{label:'Original',data:yBB,borderColor:'#94a3b8',backgroundColor:'transparent',tension:.4,pointRadius:2,borderDash:[5,3]}]},options:cO()});$('pTb').innerHTML=yR.map(r=>`<tr><td style="color:var(--text3)">Yr ${r.yr}</td><td style="font-family:var(--font-m)">$${Math.round(r.pmt).toLocaleString()}</td><td style="color:var(--green);font-family:var(--font-m)">$${Math.round(r.prin).toLocaleString()}</td><td style="color:var(--red);font-family:var(--font-m)">$${Math.round(r.int).toLocaleString()}</td><td style="font-family:var(--font-m);font-weight:500">$${Math.round(r.bal).toLocaleString()}</td><td style="color:var(--green);font-family:var(--font-m)">$${Math.round(r.eq).toLocaleString()}</td><td><div class="progress"><div class="pf" style="width:${Math.min(100,r.eqP).toFixed(0)}%;background:var(--green)"></div></div><span style="font-size:9px;color:var(--text3)">${r.eqP.toFixed(1)}%</span></td></tr>`).join('')}
 let mCI=null;
 function adj(id,v){const el=$(id);if(el){el.value=Math.max(0,parseFloat(el.value||0)+v);cm()}}
 function adjR(id,v){const el=$(id);if(el){el.value=Math.max(parseFloat(el.min||0),Math.min(parseFloat(el.max||100),parseFloat(el.value||0)+v));cm()}}
 function cm(){const price=parseFloat($('mPrice')?.value)||315000,dpPct=(parseFloat($('mDp')?.value)||0)/100,rate=parseFloat($('mR2')?.value)||5,close=parseFloat($('mClose')?.value)||1000,rent=parseFloat($('mRent')?.value)||2500,taxYr=parseFloat($('mTax')?.value)||3168,insYr=parseFloat($('mIns')?.value)||1140,util=parseFloat($('mUtil')?.value)||50,misc=parseFloat($('mMisc')?.value)||0,capPct=(parseFloat($('mCap')?.value)||8)/100,vacPct=(parseFloat($('mVac')?.value)||5)/100,appPct=(parseFloat($('mApp')?.value)||3)/100;const mTerm=parseInt($('mTm')?.value)||30;const dp=price*dpPct,loan=price-dp,cashIn=dp+close,mr=rate/100/12;const mort=loan>0&&mr>0?loan*mr/(1-Math.pow(1+mr,-mTerm*12)):0;const taxMo=taxYr/12,insMo=insYr/12,upgrade=rent*capPct,vacancy=rent*vacPct,effRent=rent*(1-vacPct),totalExp=mort+taxMo+insMo+util+misc+upgrade,net=effRent-totalExp,annCF=net*12,cocROI=cashIn>0?(annCF/cashIn*100):0,noi=rent*12-taxYr-insYr-util*12-misc*12-upgrade*12-vacancy*12,capRate=price>0?(noi/price*100):0;try{$('mDpL').textContent=Math.round(dpPct*100)+'%';$('mDpAmt').textContent='$'+Math.round(dp).toLocaleString();$('mRL2').textContent=rate.toFixed(2)+'%';$('mTmL').textContent=mTerm;$('mTmD').textContent=mTerm+'yr';ur($('mDp'),'--blue');ur($('mR2'),'--blue');ur($('mTm'),'--blue');ur($('mCap'),'--green');ur($('mVac'),'--red');ur($('mApp'),'--blue');$('mMortAmt').textContent='$'+Math.round(mort).toLocaleString()+'/mo';$('mLoanInfo').textContent='$'+Math.round(loan).toLocaleString()+' '+mTerm+'yr @ '+rate.toFixed(2)+'%';$('mTaxMo').textContent='→$'+Math.round(taxMo)+'/mo';$('mInsMo').textContent='→$'+Math.round(insMo)+'/mo';$('mCapL').textContent=Math.round(capPct*100)+'%';$('mCapD').textContent=Math.round(capPct*100)+'%';$('mCapAmt').textContent='$'+Math.round(upgrade)+'/mo';$('mVacL').textContent=Math.round(vacPct*100)+'%';$('mVacD').textContent=Math.round(vacPct*100)+'%';$('mVacAmt').textContent='$'+Math.round(vacancy)+'/mo';$('mAppL').textContent=(appPct*100).toFixed(1)+'%';$('mAppD').textContent=(appPct*100).toFixed(1)+'%'}catch(e){}$('mStats').innerHTML=`<div class="stat ${cocROI>0?'sg':'sr'}"><div class="sl">Cash on Cash ROI</div><div class="sv">${cocROI.toFixed(1)}%</div></div><div class="stat ${net>0?'sg':'sr'}"><div class="sl">Net/mo</div><div class="sv">${net>=0?'':'-'}$${Math.abs(Math.round(net)).toLocaleString()}</div></div><div class="stat sa"><div class="sl">Cap Rate</div><div class="sv">${capRate.toFixed(1)}%</div></div><div class="stat sb"><div class="sl">Cash in</div><div class="sv">$${Math.round(cashIn).toLocaleString()}</div></div><div class="stat sp"><div class="sl">Mortgage</div><div class="sv">$${Math.round(mort).toLocaleString()}</div></div><div class="stat sc"><div class="sl">Annual Cash Flow</div><div class="sv">${annCF>=0?'':'-'}$${Math.abs(Math.round(annCF)).toLocaleString()}</div></div>`;const items=[['+Rent',effRent,'var(--green)'],['-Mortgage',-mort,'var(--red)'],['-Tax',-taxMo,'var(--red)'],['-Insurance',-insMo,'var(--red)'],['-Utilities',-util,'var(--red)'],['-Misc',-misc,'var(--text3)'],['-Upgrade',-upgrade,'var(--amber)']];$('mSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:3px">${items.map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);color:${c}">${v>=0?'+':'-'}$${Math.abs(Math.round(v)).toLocaleString()}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;padding:7px 0;font-size:14px;font-weight:700;border-top:2px solid var(--border)"><span>NET</span><span style="font-family:var(--font-m);color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':'-'}$${Math.abs(Math.round(net)).toLocaleString()}/mo</span></div></div><div class="abox ${cocROI>6?'abox-g':cocROI>0?'abox-b':'abox-r'}" style="margin-top:.75rem;font-size:11px">${cocROI>6?'<strong>Strong</strong> — '+cocROI.toFixed(1)+'% CoC.':cocROI>0?'<strong>Marginal</strong> — '+cocROI.toFixed(1)+'%.':'<strong>Bad deal</strong> — MAGY on $'+Math.round(cashIn/1000)+'K → ~$'+Math.round(cashIn*0.37/12)+'/mo.'}</div>`;const rows=[],eqV=[Math.round(dp)],cfV=[0],pvV=[price];let bal2=loan,cumCF=0,pv=price;for(let y=1;y<=mTerm;y++){for(let m=0;m<12&&bal2>0;m++){const i=bal2*mr,pr=Math.min(mort-i,bal2);bal2=Math.max(0,bal2-pr)}pv*=(1+appPct);cumCF+=annCF;const eq=pv-bal2,tr=eq-dp+cumCF;rows.push({y,pv,eq,net,annCF,cumCF,tr,roi:cashIn>0?(tr/cashIn*100):0});eqV.push(Math.round(eq));cfV.push(Math.round(cumCF));pvV.push(Math.round(pv))}const isDk2=document.documentElement.getAttribute('data-theme')==='dark';if(mCI)mCI.destroy();mCI=new Chart($('mChart').getContext('2d'),{type:'line',data:{labels:['Now',...rows.map(r=>'Yr '+r.y)],datasets:[{label:'Equity',data:eqV,borderColor:isDk2?'#4ade80':'#16a34a',backgroundColor:isDk2?'rgba(74,222,128,.08)':'rgba(22,163,74,.06)',fill:true,tension:.4,pointRadius:3},{label:'CF',data:cfV,borderColor:isDk2?'#fbbf24':'#d97706',backgroundColor:'transparent',tension:.4,pointRadius:2,borderDash:[5,3]},{label:'Value',data:pvV,borderColor:isDk2?'#60a5fa':'#1d4ed8',backgroundColor:'transparent',tension:.4,pointRadius:0,borderDash:[2,4]}]},options:cO()});$('mTb').innerHTML=rows.map(r=>`<tr><td style="color:var(--text3)">Yr ${r.y}</td><td style="font-family:var(--font-m)">$${Math.round(r.pv).toLocaleString()}</td><td style="color:var(--green);font-family:var(--font-m)">$${Math.round(r.eq).toLocaleString()}</td><td style="color:${r.net>=0?'var(--green)':'var(--red)'};font-family:var(--font-m)">${r.net>=0?'+':'-'}$${Math.abs(Math.round(r.net)).toLocaleString()}/mo</td><td style="font-family:var(--font-m)">${r.annCF>=0?'+':'-'}$${Math.abs(Math.round(r.annCF)).toLocaleString()}</td><td style="font-family:var(--font-m)">${r.cumCF>=0?'+':'-'}$${Math.abs(Math.round(r.cumCF)).toLocaleString()}</td><td style="color:var(--purple);font-family:var(--font-m)">$${Math.round(r.tr).toLocaleString()}</td><td style="color:var(--amber);font-family:var(--font-m)">${r.roi.toFixed(1)}%</td></tr>`).join('')}
+// ═══════════════════ LOAN PAYOFF ═══════════════════
+let lpCI=null;
+function cloan(){
+  const amt=parseFloat($('lpAmt')?.value)||30000;
+  const months=parseInt($('lpTm')?.value)||12;
+  const rate=(parseFloat($('lpRt')?.value)||12)/100;
+  const freq=$('lpFreq')?.value||'monthly';
+  try{$('lpTmL').textContent=months;$('lpTmD').textContent=months;
+  $('lpRtL').textContent=(rate*100).toFixed(2)+'%';$('lpRtD').textContent=(rate*100)+'%';
+  ur($('lpTm'),'--blue');ur($('lpRt'),'--purple')}catch(e){}
+  const ppy=freq==='weekly'?52:freq==='fortnightly'?26:12;
+  const freqLabel=freq==='weekly'?'Weekly':freq==='fortnightly'?'Fortnightly':'Monthly';
+  const totalPeriods=Math.round(months*ppy/12);
+  const pr=rate/ppy;
+  const pmt=pr>0?amt*pr/(1-Math.pow(1+pr,-totalPeriods)):amt/totalPeriods;
+  const totalPaid=pmt*totalPeriods;
+  const totalInt=totalPaid-amt;
+  $('lpStats').innerHTML=`
+    <div class="stat sp"><div class="sl">${freqLabel} Payment</div><div class="sv">${fmtD(pmt,2)}</div></div>
+    <div class="stat sr"><div class="sl">Total Interest</div><div class="sv">${fmtD(totalInt,2)}</div></div>
+    <div class="stat sb"><div class="sl">Total Payment</div><div class="sv">${fmtD(totalPaid,2)}</div></div>
+    <div class="stat sa"><div class="sl">Periods</div><div class="sv">${totalPeriods}</div><div class="ss">${freqLabel.toLowerCase()}</div></div>
+    <div class="stat sc"><div class="sl">Term</div><div class="sv">${months} mo</div><div class="ss">${(months/12).toFixed(1)} yrs</div></div>
+    <div class="stat sg"><div class="sl">Interest Ratio</div><div class="sv">${(totalInt/amt*100).toFixed(1)}%</div><div class="ss">of principal</div></div>`;
+  $('lpSum').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">${[
+    ['Loan amount','$'+amt.toLocaleString(),'var(--text)'],
+    ['Interest rate',(rate*100).toFixed(2)+'%','var(--purple)'],
+    ['Term',months+' months ('+(months/12).toFixed(1)+' years)','var(--text)'],
+    ['Frequency',freqLabel+' ('+ppy+'x/year)','var(--text)'],
+    [freqLabel+' repayment','$'+pmt.toFixed(2),'var(--green)'],
+    ['Total paid','$'+totalPaid.toFixed(2),'var(--text)'],
+    ['Total interest','$'+totalInt.toFixed(2),'var(--red)'],
+  ].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${l}</span><span style="font-family:var(--font-m);font-weight:500;color:${c}">${v}</span></div>`).join('')}</div>
+  <div class="abox ${totalInt/amt<0.1?'abox-g':totalInt/amt<0.3?'abox-b':'abox-a'}" style="margin-top:.75rem;font-size:11px">${
+    totalInt/amt<0.1?'<strong>Low interest</strong> — Only '+(totalInt/amt*100).toFixed(1)+'% of principal goes to interest.'
+    :totalInt/amt<0.3?'<strong>Moderate</strong> — '+(totalInt/amt*100).toFixed(1)+'% goes to interest. Pay extra to reduce.'
+    :'<strong>High interest</strong> — '+(totalInt/amt*100).toFixed(1)+'% goes to interest ($'+Math.round(totalInt).toLocaleString()+'). Shorter term or lower rate helps.'
+  }</div>`;
+  let bal=amt,cumInt=0;const rows=[],balVals=[amt];
+  for(let i=1;i<=totalPeriods;i++){const intP=bal*pr;const prinP=Math.min(pmt-intP,bal);cumInt+=intP;bal=Math.max(0,bal-prinP);rows.push({i,bal,prinP,intP,pmt:prinP+intP,cumInt});if(i%Math.max(1,Math.floor(totalPeriods/30))===0||i===totalPeriods)balVals.push(Math.round(bal))}
+  const isDk=document.documentElement.getAttribute('data-theme')==='dark';
+  const step=Math.max(1,Math.floor(totalPeriods/30));
+  const chartLabels=['Start',...rows.filter((_,j)=>j%step===0||j===rows.length-1).map(r=>'#'+r.i)];
+  if(lpCI)lpCI.destroy();
+  lpCI=new Chart($('lpChart').getContext('2d'),{type:'line',data:{labels:chartLabels,datasets:[{label:'Balance',data:balVals,borderColor:isDk?'#a78bfa':'#7c3aed',backgroundColor:isDk?'rgba(167,139,250,.08)':'rgba(124,58,237,.06)',fill:true,tension:.4,pointRadius:2}]},options:cO()});
+  const showStep=totalPeriods>60?Math.ceil(totalPeriods/60):1;
+  $('lpTb').innerHTML=rows.filter((_,j)=>j%showStep===0||j===rows.length-1).map(r=>`<tr><td style="color:var(--text3)">${r.i}</td><td style="font-family:var(--font-m);font-weight:500">$${r.bal.toFixed(2)}</td><td style="color:var(--green);font-family:var(--font-m)">$${r.prinP.toFixed(2)}</td><td style="color:var(--red);font-family:var(--font-m)">$${r.intP.toFixed(2)}</td><td style="font-family:var(--font-m)">$${r.pmt.toFixed(2)}</td><td style="color:var(--amber);font-family:var(--font-m)">$${r.cumInt.toFixed(2)}</td></tr>`).join('');
+}
+
 let bCI=null;
 function cbuy(){
  try{
