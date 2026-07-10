@@ -1280,13 +1280,14 @@ function runIM(cap,price,yld,drift,reinv,tax,yrs,addM,freq){
       const ppm=freq/12;
       for(let pp=0;pp<Math.round(ppm);pp++){
         const div=p*(yld/freq)*s;
+        const afterTax=div*(1-tax);
         td+=div;
-        const rv=div*reinv,cash=div*(1-reinv)*(1-tax);
+        const rv=afterTax*reinv,cash=afterTax*(1-reinv);
         tc+=cash;if(rv>0)s+=rv/p;
       }
       if(addM>0){s+=addM/p;ti+=addM}
     }
-    const pv=s*p,net=(pv+tc)-ti,mo=p*yld*s/12*(1-(reinv===0?tax:0)),pp2=mo/(freq/12),yoc=p*yld*s/ti*100;
+    const pv=s*p,net=(pv+tc)-ti,mo=p*yld*s/12*(1-tax),pp2=mo/(freq/12),yoc=p*yld*s/ti*100;
     rows.push({y,p,s,pv,td,tc,ti,net,mo,wk:mo/4.33,pp:pp2,an:mo*12,yoc,pos:net>=0});
     labels.push('Yr '+y);posVals.push(Math.round(pv));totals.push(Math.round(pv+tc));
     monthlyIncs.push(Math.round(mo));shareVals.push(parseFloat(s.toFixed(1)));
