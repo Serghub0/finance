@@ -359,6 +359,10 @@ hr{border:none;border-top:1px solid var(--border);margin:.9rem 0}
         <div class="ticker-inp"><input type="text" id="tickSym" placeholder="e.g. MAGY" maxlength="10" value="MAGY" onkeydown="if(event.key==='Enter')fetchTicker()"></div>
         <button class="btn btn-o" id="fetchBtn" onclick="fetchTicker()" style="font-size:11px">Load Ticker</button>
       </div>
+      <div style="display:none">
+        <input type="password" id="fhKey" placeholder="Finnhub API key (paste once)" value="d99hm31r01qssj139fhgd99hm31r01qssj139fi0" style="flex:1;font-size:10px;padding:6px 8px;background:var(--surface2);border:1px solid var(--green);border-radius:var(--r);color:var(--text);font-family:var(--font-m)" oninput="if(this.value.length>5)this.style.borderColor='var(--green)'">
+        <a href="https://finnhub.io/register" target="_blank" rel="noopener" style="font-size:9px;color:var(--cyan);text-decoration:none;white-space:nowrap">Get free key</a>
+      </div>
       <div class="quick">
         <span style="font-size:9px;color:var(--text3);align-self:center;white-space:nowrap">Quick load:</span>
         <button class="qb" onclick="ql('MAGY')">MAGY</button>
@@ -1229,27 +1233,33 @@ const KD={
 async function fetchTicker(){
   const sym=$('tickSym').value.trim().toUpperCase();
   if(!sym){showS('Enter a ticker symbol','err');return}
+  const apiKey=$('fhKey')?.value?.trim();
   $('fetchBtn').disabled=true;
-  showS('Fetching '+sym+'...','load');
-  try{
-    const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`);
-    if(r.ok){
-      const d=await r.json();
-      const m=d?.chart?.result?.[0]?.meta;
-      if(m){
-        populate({name:m.longName||m.shortName||sym,price:m.regularMarketPrice,high:m.fiftyTwoWeekHigh,low:m.fiftyTwoWeekLow,cap:m.marketCap,chg:m.regularMarketChange,yld:null},sym);
-        showS('✓ Live data loaded for '+sym,'ok');return;
-      }
-    }throw new Error('fallback');
-  }catch{
-    if(KD[sym]){
-      const k=KD[sym];
-      populate({name:k.name,price:k.price,high:k.high,low:k.low,cap:null,chg:k.chg,yld:k.yld},sym);
-      $('iY').value=k.yld;['iYL','iYD'].forEach(id=>{$(id).textContent=k.yld+'%'});ur($('iY'),'--green');
-      iFreq=k.freq;document.querySelectorAll('#frTg .tb').forEach((b,i)=>b.classList.toggle('on',i===(k.freq===52?0:k.freq===12?1:2)));
-      showS('✓ Loaded data for '+sym,'ok');
-    }else showS('Could not fetch '+sym+'. Enter values manually.','err');
+  if(apiKey&&apiKey.length>5){
+    showS('Fetching '+sym+' from Finnhub...','load');
+    try{
+      const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${apiKey}`);
+      if(r.ok){
+        const q=await r.json();
+        if(q&&q.c>0){
+          const kd=KD[sym];
+          populate({name:kd?.name||sym,price:q.c,high:q.h||kd?.high,low:q.l||kd?.low,cap:null,chg:q.d,yld:kd?.yld||null},sym);
+          if(kd){$('iY').value=kd.yld;['iYL','iYD'].forEach(id=>{$(id).textContent=kd.yld+'%'});ur($('iY'),'--green');
+          iFreq=kd.freq;document.querySelectorAll('#frTg .tb').forEach((b,i)=>b.classList.toggle('on',i===(kd.freq===52?0:kd.freq===12?1:2)))}
+          showS('✓ Live price for '+sym+': $'+q.c.toFixed(2),'ok');
+          $('fetchBtn').disabled=false;ci();return;
+        }
+      }throw new Error('no data');
+    }catch(e){showS('Finnhub error for '+sym+' — trying fallback...','warn')}
   }
+  // Fallback to known data
+  if(KD[sym]){
+    const k=KD[sym];
+    populate({name:k.name,price:k.price,high:k.high,low:k.low,cap:null,chg:k.chg,yld:k.yld},sym);
+    $('iY').value=k.yld;['iYL','iYD'].forEach(id=>{$(id).textContent=k.yld+'%'});ur($('iY'),'--green');
+    iFreq=k.freq;document.querySelectorAll('#frTg .tb').forEach((b,i)=>b.classList.toggle('on',i===(k.freq===52?0:k.freq===12?1:2)));
+    showS(apiKey?'⚠ Finnhub failed — loaded cached data for '+sym:'Enter Finnhub API key for live prices — loaded cached data','ok');
+  }else showS('Unknown ticker. Enter Finnhub API key for live lookup or set values manually.','err');
   $('fetchBtn').disabled=false;ci();
 }
 
@@ -2144,32 +2154,30 @@ function openPrice(e){
 
 // ═══════════════════ AUTO-FETCH ON LOAD ═══════════════════
 async function autoFetchDefaults(){
-  // Silently try to fetch live MAGY price on page load
+  // Try Finnhub for live MAGY price on page load
+  const apiKey=$('fhKey')?.value?.trim();
+  if(!apiKey||apiKey.length<5)return; // No key — use cached defaults silently
   try{
-    const r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/MAGY?interval=1d&range=1d');
+    const r=await fetch('https://finnhub.io/api/v1/quote?symbol=MAGY&token='+apiKey);
     if(r.ok){
-      const d=await r.json();
-      const m=d?.chart?.result?.[0]?.meta;
-      if(m&&m.regularMarketPrice){
-        const livePrice=m.regularMarketPrice;
-        $('iPr').value=livePrice.toFixed(2);
-        $('iPrL').textContent='$'+livePrice.toFixed(2);
-        $('tiPrice').textContent='$'+livePrice.toFixed(2);
-        $('tiName').textContent=m.longName||m.shortName||'MAGY';
-        if(m.fiftyTwoWeekHigh) $('ti52H').textContent='$'+m.fiftyTwoWeekHigh.toFixed(2);
-        if(m.fiftyTwoWeekLow) $('ti52L').textContent='$'+m.fiftyTwoWeekLow.toFixed(2);
-        if(m.marketCap) $('tiCap').textContent=fmtN(m.marketCap);
-        const chg=m.regularMarketChange||0;
+      const q=await r.json();
+      if(q&&q.c>0){
+        $('iPr').value=q.c.toFixed(2);
+        $('iPrL').textContent='$'+q.c.toFixed(2);
+        $('tiPrice').textContent='$'+q.c.toFixed(2);
+        $('tiName').textContent='Roundhill Mag 7 Covered Call ETF';
+        const chg=q.d||0;
         $('tiChg').textContent=(chg>=0?'+':'')+chg.toFixed(2);
         $('tiChg').style.color=chg>=0?'var(--green)':'var(--red)';
-        // Update cached known data
-        if(KD.MAGY) KD.MAGY.price=livePrice;
-        ci(); // recalculate with live price
-        console.log('✅ Rosalie: Live MAGY price loaded: $'+livePrice.toFixed(2));
+        if(q.h)$('ti52H').textContent='$'+q.h.toFixed(2);
+        if(q.l)$('ti52L').textContent='$'+q.l.toFixed(2);
+        if(KD.MAGY)KD.MAGY.price=q.c;
+        ci();
+        console.log('✅ Rosalie: Live MAGY price via Finnhub: $'+q.c.toFixed(2));
       }
     }
   }catch(e){
-    console.log('ℹ Rosalie: Yahoo Finance unavailable — using cached defaults. This is normal in some browsers.');
+    console.log('ℹ Rosalie: Finnhub unavailable — using cached defaults.');
   }
 }
 
